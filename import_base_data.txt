@@ -157,6 +157,15 @@ MERGE (chuck:Character {
 
 MERGE (faith)-[:SPOUSE {status: "current"}]->(chuck)
 
+MERGE (annette:Character {name: "Annette Turner", aliases: ["Annette"]})
+MERGE (greg:Character {
+    name: "Greg Turner", 
+    aliases: ["Greg"], 
+    dod: date("2004-05-07")
+})
+
+MERGE (annette)-[:CHILD_OF]->(greg)
+
 // ARCHER / ALDRIDGE BRANCH
 MERGE (jennifer)-[:CHILD_OF]->(peggy)
 MERGE (lilian)-[:CHILD_OF]->(peggy)
