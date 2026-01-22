@@ -133,7 +133,7 @@ class EpisodeProcessor:
             "Directed by", "Director", "DIRECTOR",
             "Edited by", "Editor", "EDITED BY",
             "Repeated on",
-            "bbc.co.uk/actionline"
+            "If you are feeling" # actionline blurb
         )
 
         text_to_process = episode.get("blurb") or episode.get("synopsis")
