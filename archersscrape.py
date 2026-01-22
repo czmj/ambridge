@@ -319,7 +319,7 @@ class ArchersDatabase:
             // Identify conflicting characters who were also alive/active during this episode
             OPTIONAL MATCH (other:Character)
             WHERE other <> c 
-              AND ANY(term IN ([other.name] + other.aliases) WHERE s.text CONTAINS term)
+              AND ANY(a IN other.aliases WHERE a IN $aliases)
               AND (other.dob IS NULL OR e.date >= other.dob)
               AND (other.dod IS NULL OR e.date <= (other.dod + duration({years: 5})))
               AND (other.first_appearance IS NULL OR e.date >= other.first_appearance)
@@ -331,7 +331,10 @@ class ArchersDatabase:
             
             // Count family members
             OPTIONAL MATCH (s)<-[:APPEARS_IN]-(relative:Character)
-            WHERE (c)-[:SPOUSE|CHILD_OF]-(relative) OR (relative)-[:CHILD_OF]-(c)
+            WHERE 
+                (c)-[:SPOUSE]-(relative) 
+                OR (relative)-[:CHILD_OF*1..2]->(c)
+                OR (c)-[:CHILD_OF*1..2]->(relative)
             
             WITH s, c, 
                  count(DISTINCT other) AS active_conflicts, 
@@ -366,18 +369,44 @@ class ArchersDatabase:
                 all_names = [re.escape(char['name'])] + [re.escape(a) for a in aliases]
                 regex_pattern = f".*\\b({'|'.join(all_names)})\\b.*"
                 
-                result = session.run(pass2_query, name=char['name'], regex=regex_pattern)
+                result = session.run(pass2_query, name=char['name'], regex=regex_pattern, aliases=aliases)
                 total_links += result.consume().counters.relationships_created
                 print(f"Progress: {i+1}/{len(ambiguous)} | Total Links: {total_links}", end='\r')
             
             print(f"\nFinished. Total relationships created: {total_links}")
             return total_links
 
-def main():
-    parser = argparse.ArgumentParser(description="Process episodes and update DB.")
-    parser.add_argument('--reset-db', action='store_true', help="Clear and rebuild DB from cache")
-    args = parser.parse_args()
+    def manual_link_character_to_scenes(self, scene_ids, character_name):
+        """
+        Creates [:APPEARS_IN] relationships between a Character and multiple Scenes.
+        scene_ids: List of integers [101, 102, 103]
+        """
+        query = """
+        MATCH (c:Character {name: $char_name})
+        UNWIND $scene_ids AS s_id
+        MATCH (s:Scene {scene_id: s_id})
+        MERGE (c)-[r:APPEARS_IN]->(s)
+        RETURN count(r) AS links_created
+        """
+        
+        try:
+            with self.driver.session() as session:
+                result = session.run(query, char_name=character_name, scene_ids=scene_ids)
+                record = result.single()
+                
+                if record and record['links_created'] > 0:
+                    print(f"Successfully created {record['links_created']} link(s) for '{character_name}'.")
 
+                    return True
+                else:
+                    print(f"Warning: No links created. Check if character name or scene IDs exist.")
+                    return False
+
+        except Exception as e:
+            print(f"Database Error: {e}")
+            return False
+
+def update_db(from_cache=False):
     SERIES_ID = os.getenv("SERIES_ID")
     CACHE_FILE = os.getenv("CACHE_FILE")
     cached_data = []
@@ -392,8 +421,8 @@ def main():
                 # Assumes cache is sorted by date descending
                 last_cached_date = datetime.strptime(cached_data[0]['date'], "%Y-%m-%d").date()
 
-    if args.reset_db:
-        print("⚠️ Reset mode enabled. Rebuilding database from cache...")
+    if from_cache:
+        print("Updating database from cache...")
 
         if not cached_data:
             print("Error: No cache file found to reset from.")
@@ -464,6 +493,38 @@ def main():
         db.close()
     
     print("Done.")
+
+def main():
+    parser = argparse.ArgumentParser(description="Neo4j Ambridge database")
+    subparsers = parser.add_subparsers(dest="command")
+
+    update_parser = subparsers.add_parser('update', help='Scrape new episodes or reset from cache')
+    update_parser.add_argument('--from-cache', action='store_true', help="Clear and rebuild DB from cache")
+
+    link_parser = subparsers.add_parser('link', help='Manually link a character to a scene')
+    link_parser.add_argument('--scenes', type=str, nargs='+', required=True, help='List of scene IDs (space-separated)')
+    link_parser.add_argument('--character', type=str, required=True, help='Character name or ID')
+
+    args = parser.parse_args()
+
+    if args.command == 'link':
+        db = ArchersDatabase()
+        try:
+            print(f"Manually linking character '{args.character}' to scenes...")
+            success = db.manual_link_character_to_scenes(args.scenes, args.character)
+
+            if success:
+                print("Link established successfully.")
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            db.close()
+        return
+
+    if args.command == 'update':
+        update_db(args.from_cache)
+    else:
+        parser.print_help()
 
 if __name__ == "__main__":
     main()
