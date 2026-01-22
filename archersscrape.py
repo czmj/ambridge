@@ -2,7 +2,8 @@ import requests
 import os
 import re
 import json
-import os
+import argparse
+import sys
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -372,12 +373,16 @@ class ArchersDatabase:
             print(f"\nFinished. Total relationships created: {total_links}")
             return total_links
 
+def main():
+    parser = argparse.ArgumentParser(description="Process episodes and update DB.")
+    parser.add_argument('--reset-db', action='store_true', help="Clear and rebuild DB from cache")
+    args = parser.parse_args()
 
-if __name__ == "__main__":
     SERIES_ID = os.getenv("SERIES_ID")
     CACHE_FILE = os.getenv("CACHE_FILE")
     cached_data = []
     last_cached_date = None
+    episodes_to_process = []
 
     if os.path.exists(CACHE_FILE):
         print(f"Loading existing data from cache ({CACHE_FILE})...")
@@ -387,55 +392,60 @@ if __name__ == "__main__":
                 # Assumes cache is sorted by date descending
                 last_cached_date = datetime.strptime(cached_data[0]['date'], "%Y-%m-%d").date()
 
-    scraper = WebScraper()
-    new_episodes_found = []
-    
-    if last_cached_date:
-        print(f"Searching for episodes newer than {last_cached_date}...")
-        current_page = 1
-        found_overlap = False
+    if args.reset_db:
+        print("⚠️ Reset mode enabled. Rebuilding database from cache...")
 
-        while not found_overlap:
-            print(f"Checking page {current_page}...")
-            page_results = scraper.get_paginated_episodes(SERIES_ID, first_page=current_page, last_page=current_page)
-            
-            if not page_results:
-                break
+        if not cached_data:
+            print("Error: No cache file found to reset from.")
+            return
 
-            for ep in page_results:
-                ep_date = datetime.strptime(ep['date'], "%Y-%m-%d").date()
-                if ep_date > last_cached_date:
-                    new_episodes_found.append(ep)
-                else:
-                    found_overlap = True
-                    break
-            
-            if not found_overlap:
-                current_page += 1
+        episodes_to_process = cached_data
+    else:
+        scraper = WebScraper()
+        new_episodes_found = []
         
-        if not new_episodes_found:
-            print("No new episodes found.")
-            episodes_to_process = []
+        if last_cached_date:
+            print(f"Searching for episodes newer than {last_cached_date}...")
+            current_page = 1
+            found_overlap = False
+
+            while not found_overlap:
+                print(f"Checking page {current_page}...")
+                page_results = scraper.get_paginated_episodes(SERIES_ID, first_page=current_page, last_page=current_page)
+                
+                if not page_results:
+                    break
+
+                for ep in page_results:
+                    ep_date = datetime.strptime(ep['date'], "%Y-%m-%d").date()
+                    if ep_date > last_cached_date:
+                        new_episodes_found.append(ep)
+                    else:
+                        found_overlap = True
+                        break
+                
+                if not found_overlap:
+                    current_page += 1
+            
+            if new_episodes_found:
+                print(f"Found {len(new_episodes_found)} new episode(s).")
+                data_to_cache = new_episodes_found + cached_data
+
+                with open(CACHE_FILE, "w") as f:
+                    json.dump(data_to_cache, f)
+                episodes_to_process = new_episodes_found
+            else:
+                print("No new episodes found.")
         else:
-            print(f"Found {len(new_episodes_found)} new episode(s).")
-            data_to_cache = new_episodes_found + cached_data
+            print("No cache found. Performing full scrape...")
+            data_to_cache = scraper.get_all_episodes(SERIES_ID)
 
             with open(CACHE_FILE, "w") as f:
                 json.dump(data_to_cache, f)
-                
-            episodes_to_process = new_episodes_found
-    else:
-        print("No cache found. Performing full scrape...")
-        data_to_cache = scraper.get_all_episodes(SERIES_ID)
 
-        with open(CACHE_FILE, "w") as f:
-            json.dump(data_to_cache, f)
-
-        episodes_to_process = data_to_cache
+            episodes_to_process = data_to_cache
 
     detailed_episode_data = []
-    total_new_scenes = 0
-
     if episodes_to_process:
         print(f"Processing {len(episodes_to_process)} episodes...")
         processor = EpisodeProcessor()
@@ -445,12 +455,15 @@ if __name__ == "__main__":
     try:
         if detailed_episode_data:
             total_new_scenes = db.add_episodes_with_scenes(detailed_episode_data)
-        
-        if total_new_scenes:
-            db.link_all_characters_to_scenes()
+
+            if total_new_scenes:
+                db.link_all_characters_to_scenes()
     except Exception as e:
-        print(e)
+        print(f"Database Error: {e}")
     finally:
         db.close()
     
     print("Done.")
+
+if __name__ == "__main__":
+    main()
