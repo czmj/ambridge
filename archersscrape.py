@@ -216,7 +216,8 @@ class ArchersDatabase:
         WITH e
         UNWIND $scenes AS scene_data
         
-        MERGE (s:Scene {scene_id: $pid + "_" + toString(scene_data.index)})
+        MERGE (s:Scene {id: $pid + "_" + toString(scene_data.index)})
+        SET s.order = scene_data.index
         SET s.text = scene_data.text
         
         MERGE (s)-[:PART_OF]->(e)   
@@ -377,14 +378,10 @@ class ArchersDatabase:
             return total_links
 
     def manual_link_character_to_scenes(self, scene_ids, character_name):
-        """
-        Creates [:APPEARS_IN] relationships between a Character and multiple Scenes.
-        scene_ids: List of integers [101, 102, 103]
-        """
         query = """
         MATCH (c:Character {name: $char_name})
         UNWIND $scene_ids AS s_id
-        MATCH (s:Scene {scene_id: s_id})
+        MATCH (s:Scene {id: s_id})
         MERGE (c)-[r:APPEARS_IN]->(s)
         RETURN count(r) AS links_created
         """

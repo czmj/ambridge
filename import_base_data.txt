@@ -11,7 +11,7 @@ MATCH (e:Episode)
 DETACH DELETE e;
 
 CREATE CONSTRAINT episode_pid_key IF NOT EXISTS FOR (e:Episode) REQUIRE e.pid IS NODE KEY;
-CREATE CONSTRAINT scene_id_key IF NOT EXISTS FOR (s:Scene) REQUIRE s.scene_id IS NODE KEY;
+CREATE CONSTRAINT scene_id_key IF NOT EXISTS FOR (s:Scene) REQUIRE s.id IS NODE KEY;
 
 MERGE (abbie:Character {name: "Abbie Tucker", aliases: ["Abbie"], dob: date("2008-03-07")})
 MERGE (adam:Character {name: "Adam Macy", aliases: ["Adam"], dob: date("1967-06-22")})
@@ -145,6 +145,17 @@ MERGE (nolly:Character {name: "Noluthando Madikane", aliases: ["Noluthando", "No
 MERGE (sipho:Character {name: "Sipho Madikane", aliases: ["Sipho"]})
 MERGE (jamie:Character {name: "Jamie Perks", aliases: ["Jamie"], dob: date("1995-07-20")})
 MERGE (kathy:Character {name: "Kathy Perks", aliases: ["Kathy"]})
+
+MERGE (faith:Character {
+    name: "Faith", 
+    aliases: ["Faith"]
+})
+MERGE (chuck:Character {
+    name: "Chuck", 
+    aliases: ["Chuck"]
+})
+
+MERGE (faith)-[:SPOUSE {status: "current"}]->(chuck)
 
 // ARCHER / ALDRIDGE BRANCH
 MERGE (jennifer)-[:CHILD_OF]->(peggy)
