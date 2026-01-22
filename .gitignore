@@ -1,0 +1,14 @@
+.env
+.venv/
+venv/
+ENV/
+env/
+
+__pycache__/
+*.py[cod]
+*$py.class
+cached_episode_data.json
+
+.vscode/
+.idea/
+*.log

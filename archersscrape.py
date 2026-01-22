@@ -1,0 +1,456 @@
+import requests
+import os
+import re
+import json
+import os
+from bs4 import BeautifulSoup
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from neo4j import GraphDatabase
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class WebScraper:
+    def __init__(self, max_workers=3):
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+        })
+        self.max_workers = max_workers
+
+    def _get_soup(self, url):
+        try:
+            resp = self.session.get(url)
+            resp.raise_for_status()
+            return BeautifulSoup(resp.text, 'html.parser')
+        except Exception as e:
+            print(f"Error fetching {url}: {e}")
+            return None
+
+    def get_episode(self, pid):
+        try:
+            soup = self._get_soup(f"https://www.bbc.co.uk/programmes/{pid}")
+            if not soup: return None
+
+            heading = soup.find('h1').get_text()
+            date_match = re.compile(r'(\d{2}/\d{2}/\d{4})').search(heading)
+
+            if not date_match:
+                print(f"Ignoring special episode: {heading} (PID: {pid})")
+                return None
+            
+            date = datetime.strptime(date_match.group(1), "%d/%m/%Y").date()
+            formatted_date = date.strftime('%Y-%m-%d')
+
+            if date >= datetime.now().date(): 
+                print(f"Ignoring future episode: {formatted_date} (PID: {pid})")
+                return None
+ 
+            synopsis_el = (soup.find(class_="longest-synopsis") or soup.find(class_="synopsis-toggle__short"))
+            description_el = soup.find(class_="synopsis-toggle__long") or synopsis_el
+
+            for line_break in description_el.find_all('br'):
+                line_break.replace_with("\n")
+
+            blurb_text = "\n".join([p.get_text() for p in description_el.find_all("p")])
+            synopsis_text = synopsis_el.find('p').get_text(strip=True)
+
+            if "Rpt" in blurb_text: 
+                print(f"Ignoring repeat: {formatted_date} (PID: {pid})")
+                return None
+
+            return {
+                'pid': pid,
+                'date': date.strftime("%Y-%m-%d"),
+                'blurb': blurb_text,
+                'synopsis': synopsis_text
+            }
+        except Exception as e:
+            print(f"Error getting episode data: PID {pid}", e)
+            return None
+
+    def get_paginated_episodes(self, series_id, first_page=1, last_page=1):
+        all_pids = []
+        pages = [f"https://www.bbc.co.uk/programmes/{series_id}/episodes/guide?page={i}" for i in range(first_page, last_page + 1)]
+
+        # Batch 1: Concurrent Page Scraping for PIDs
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            future_to_page = {executor.submit(self._get_soup, url): url for url in pages}
+            completed_pages = 0
+            for future in as_completed(future_to_page):
+                soup = future.result()
+                if soup:
+                    all_pids.extend([i['data-pid'] for i in soup.find_all(attrs={"data-pid": True})])
+                completed_pages += 1
+                print(f"Indexing: {completed_pages}/{len(pages)} pages processed", end='\r')
+        
+        print(f"\nFound {len(all_pids)} episode(s) in index")
+
+        # Batch 2: Concurrent Metadata Retrieval
+        episodes = []
+        unique_pids = list(set(all_pids))
+        total_pids = len(unique_pids)
+        
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            future_to_pid = {executor.submit(self.get_episode, pid): pid for pid in unique_pids}
+            completed_episodes = 0
+
+            for future in as_completed(future_to_pid):
+                result = future.result()
+
+                if result:
+                    episodes.append(result)
+
+                completed_episodes += 1
+                print(f"Scraping: {completed_episodes}/{total_pids} episodes", end='\r')
+
+        print(f"\n")
+        return sorted(episodes, key=lambda x: x['date'] or '', reverse=True)
+
+    def get_all_episodes(self, series_id):
+        url = f"https://www.bbc.co.uk/programmes/{series_id}/episodes/guide"
+        soup = self._get_soup(url)
+        last_page_node = soup.find("li", class_="pagination__page--last")
+        last_page = int(last_page_node.get_text())
+
+        return self.get_paginated_episodes(series_id, 1, last_page)
+
+class EpisodeProcessor:
+    def process_episode(self, episode):
+        split_pattern = r'\n+|(?:(?<=[.!?])\s+(?=Meanwhile|Back at|Elsewhere|At\s[A-Z]|[\s]{2}))'
+        ellipses_pattern = r'(\.{3,}|…{2,}|…\.|\.\.…)'
+        boilerplate_pattern = (
+            r'^\s*(?:'
+            r'Rural drama(?: series)?(?: set in Ambridge)?|'
+            r'Contemporary drama in a rural setting|'
+            r'The week\'s events in Ambridge|'
+            r')\.?\s*'
+        )
+        credit_markers = (
+            "Written by", "Writer", "WRITER", "Episode written by",
+            "Directed by", "Director", "DIRECTOR",
+            "Edited by", "Editor", "EDITED BY",
+            "Repeated on",
+            "bbc.co.uk/actionline"
+        )
+
+        text_to_process = episode.get("blurb") or episode.get("synopsis")
+        raw_scenes = [s.strip() for s in re.split(split_pattern, text_to_process) if s.strip()]
+
+        if not raw_scenes:
+            return None
+
+        scenes_to_clean = []
+        if any(raw_scenes[0].startswith(m) for m in credit_markers):
+            scenes_to_clean.append(episode.get("synopsis"))
+        else:
+            for s in raw_scenes:
+                if re.search(ellipses_pattern, s) or s.startswith(credit_markers):
+                    break
+                if scenes_to_clean and s[0].islower():
+                    scenes_to_clean[-1] = f"{scenes_to_clean[-1]} {s}"
+                    continue
+                scenes_to_clean.append(s)
+
+        filtered_scenes = []
+        for scene in scenes_to_clean:
+            cleaned_text = re.sub(boilerplate_pattern, "", scene, flags=re.IGNORECASE).strip()
+            
+            if cleaned_text:
+                filtered_scenes.append(cleaned_text)
+
+        return {
+            **episode,
+            "scenes": filtered_scenes
+        }
+
+    def process_batch(self, episode_list):
+        results = [self.process_episode(ep) for ep in episode_list]
+        return [ep for ep in results if ep is not None]
+
+class ArchersDatabase:
+    def __init__(self, setup_file="import_base_data.txt"):
+
+        URI = os.getenv("NEO4J_URI")
+        USER = os.getenv("NEO4J_USER")
+        PWD = os.getenv("NEO4J_PASSWORD")
+        
+        # Check if variables were loaded correctly to avoid connection errors
+        if not all([URI, USER, PWD]):
+            raise ValueError("Missing Neo4j credentials in .env file")
+            
+        self.driver = GraphDatabase.driver(URI, auth=(USER, PWD))
+        self.setup_database(setup_file)
+
+    def setup_database(self, setup_file):
+        with self.driver.session() as session:
+            count_res = session.run("MATCH p=()-[]->() RETURN count(p) as count").single()
+            
+            if count_res["count"] > 0: return None
+
+            print(f"Database empty. Loading initial setup from {setup_file}...")
+
+            if os.path.exists(setup_file):
+                with open(setup_file, "r") as f:
+                    statements = f.read().split(";")
+                    
+                    for statement in statements:
+                        cmd = statement.strip()
+                        if cmd:
+                            session.run(cmd)
+                print("Initial characters and constraints imported successfully.")
+            else:
+                print(f"Warning: {setup_file} not found. Proceeding with empty database.")
+
+    def close(self):
+        self.driver.close()
+
+    def add_episodes_with_scenes(self, episode_list):
+        query = """
+        MERGE (e:Episode {pid: $pid})
+        ON CREATE SET e.date = date($date),
+                      e.synopsis = $synopsis
+        
+        WITH e
+        UNWIND $scenes AS scene_data
+        
+        MERGE (s:Scene {scene_id: $pid + "_" + toString(scene_data.index)})
+        SET s.text = scene_data.text
+        
+        MERGE (s)-[:PART_OF]->(e)   
+        """
+
+        with self.driver.session() as session:
+            new_episodes_count = 0
+            existing_episodes_count = 0
+            total_scenes_added = 0
+            total_to_process = len(episode_list)
+
+            for i, ep in enumerate(episode_list):
+                indexed_scenes = [
+                    {"text": text, "index": i} 
+                    for i, text in enumerate(ep["scenes"])
+                ]
+                
+                result = session.run(
+                    query,
+                    pid=ep["pid"],
+                    date=ep["date"],
+                    synopsis=ep["synopsis"],
+                    scenes=indexed_scenes
+                )
+                
+                summary = result.consume()
+            
+                if summary.counters.nodes_created > 0:
+                    new_episodes_count += 1
+                    total_scenes_added += (summary.counters.nodes_created - 1)
+                else:
+                    existing_episodes_count += 1
+                
+                print(f"Adding episodes to DB: {i+1}/{total_to_process} | New: {new_episodes_count} | Existing: {existing_episodes_count} | Scenes Added: {total_scenes_added}", end='\r')
+            
+            print(f"\n")
+            return total_scenes_added
+
+    def get_character_segments(self):
+        shared_terms_query = """
+            MATCH (c:Character)
+            UNWIND (c.aliases + [c.name]) AS term
+            WITH term, count(c) AS usage_count
+            WHERE usage_count > 1
+            RETURN collect(DISTINCT term) AS shared_terms
+        """
+    
+        chars_query = """
+            MATCH (c:Character)
+            WITH c, (c.aliases + [c.name]) AS character_terms
+            WHERE 
+                ($find_ambiguous AND ANY(term IN character_terms WHERE term IN $shared_terms))
+                OR 
+                (NOT $find_ambiguous AND NONE(term IN character_terms WHERE term IN $shared_terms))
+            RETURN c.name as name, c.aliases as aliases
+        """
+
+        with self.driver.session() as session:
+            shared_result = session.run(shared_terms_query).single()
+            shared_terms = shared_result["shared_terms"] if shared_result else []
+            
+            unambiguous = session.run(
+                chars_query, 
+                find_ambiguous=False, 
+                shared_terms=shared_terms
+            ).data()
+            
+            ambiguous = session.run(
+                chars_query, 
+                find_ambiguous=True, 
+                shared_terms=shared_terms
+            ).data()
+            
+            return unambiguous, ambiguous
+
+    def link_all_characters_to_scenes(self):
+        unambiguous, ambiguous = self.get_character_segments()
+        
+        pass1_query = """
+            MATCH (c:Character {name: $name})
+            MATCH (s:Scene)-[:PART_OF]->(e:Episode)
+            WHERE s.text =~ $regex
+              AND (c.dob IS NULL OR e.date >= c.dob)
+              AND (c.dod IS NULL OR e.date <= (c.dod + duration({years: 5})))
+              AND (c.first_appearance IS NULL OR e.date >= c.first_appearance)
+              AND (c.last_appearance IS NULL OR e.date <= c.last_appearance)
+            MERGE (c)-[:APPEARS_IN]->(s)
+            RETURN count(s) as matches
+        """
+
+        pass2_query = """
+            MATCH (c:Character {name: $name})
+            MATCH (s:Scene)-[:PART_OF]->(e:Episode)
+            WHERE s.text =~ $regex
+              AND (c.dob IS NULL OR e.date >= c.dob)
+              AND (c.dod IS NULL OR e.date <= (c.dod + duration({years: 5})))
+              AND (c.first_appearance IS NULL OR e.date >= c.first_appearance)
+              AND (c.last_appearance IS NULL OR e.date <= c.last_appearance)
+            
+            // Identify conflicting characters who were also alive/active during this episode
+            OPTIONAL MATCH (other:Character)
+            WHERE other <> c 
+              AND ANY(term IN ([other.name] + other.aliases) WHERE s.text CONTAINS term)
+              AND (other.dob IS NULL OR e.date >= other.dob)
+              AND (other.dod IS NULL OR e.date <= (other.dod + duration({years: 5})))
+              AND (other.first_appearance IS NULL OR e.date >= other.first_appearance)
+              AND (other.last_appearance IS NULL OR e.date <= other.last_appearance)
+            
+            // Count total characters currently linked to the scene
+            OPTIONAL MATCH (s)<-[:APPEARS_IN]-(anyone:Character)
+            WITH s, c, other, count(DISTINCT anyone) AS total_others
+            
+            // Count family members
+            OPTIONAL MATCH (s)<-[:APPEARS_IN]-(relative:Character)
+            WHERE (c)-[:SPOUSE|CHILD_OF]-(relative) OR (relative)-[:CHILD_OF]-(c)
+            
+            WITH s, c, 
+                 count(DISTINCT other) AS active_conflicts, 
+                 total_others, 
+                 count(DISTINCT relative) AS family_present
+            
+            // Resolution Logic
+            WHERE s.text CONTAINS c.name
+               OR active_conflicts = 0
+                OR (total_others > 0 AND (toFloat(family_present) / total_others) >= 0.5)
+
+            MERGE (c)-[:APPEARS_IN]->(s)
+            RETURN count(s) as matches
+        """
+
+        with self.driver.session() as session:
+            total_links = 0
+            
+            print(f"Pass 1: Linking {len(unambiguous)} unique characters...")
+            for i, char in enumerate(unambiguous):
+                aliases = char['aliases'] if char['aliases'] is not None else []
+                all_names = [re.escape(char['name'])] + [re.escape(a) for a in aliases]
+                regex_pattern = f".*\\b({'|'.join(all_names)})\\b.*"
+                
+                result = session.run(pass1_query, name=char['name'], regex=regex_pattern)
+                total_links += result.consume().counters.relationships_created
+                print(f"Progress: {i+1}/{len(unambiguous)} | Total Links: {total_links}", end='\r')
+
+            print(f"\nPass 2: Resolving {len(ambiguous)} ambiguous characters...")
+            for i, char in enumerate(ambiguous):
+                aliases = char['aliases'] if char['aliases'] is not None else []
+                all_names = [re.escape(char['name'])] + [re.escape(a) for a in aliases]
+                regex_pattern = f".*\\b({'|'.join(all_names)})\\b.*"
+                
+                result = session.run(pass2_query, name=char['name'], regex=regex_pattern)
+                total_links += result.consume().counters.relationships_created
+                print(f"Progress: {i+1}/{len(ambiguous)} | Total Links: {total_links}", end='\r')
+            
+            print(f"\nFinished. Total relationships created: {total_links}")
+            return total_links
+
+
+if __name__ == "__main__":
+    SERIES_ID = os.getenv("SERIES_ID")
+    CACHE_FILE = os.getenv("CACHE_FILE")
+    cached_data = []
+    last_cached_date = None
+
+    if os.path.exists(CACHE_FILE):
+        print(f"Loading existing data from cache ({CACHE_FILE})...")
+        with open(CACHE_FILE, "r") as f:
+            cached_data = json.load(f)
+            if cached_data:
+                # Assumes cache is sorted by date descending
+                last_cached_date = datetime.strptime(cached_data[0]['date'], "%Y-%m-%d").date()
+
+    scraper = WebScraper()
+    new_episodes_found = []
+    
+    if last_cached_date:
+        print(f"Searching for episodes newer than {last_cached_date}...")
+        current_page = 1
+        found_overlap = False
+
+        while not found_overlap:
+            print(f"Checking page {current_page}...")
+            page_results = scraper.get_paginated_episodes(SERIES_ID, first_page=current_page, last_page=current_page)
+            
+            if not page_results:
+                break
+
+            for ep in page_results:
+                ep_date = datetime.strptime(ep['date'], "%Y-%m-%d").date()
+                if ep_date > last_cached_date:
+                    new_episodes_found.append(ep)
+                else:
+                    found_overlap = True
+                    break
+            
+            if not found_overlap:
+                current_page += 1
+        
+        if not new_episodes_found:
+            print("No new episodes found.")
+            episodes_to_process = []
+        else:
+            print(f"Found {len(new_episodes_found)} new episode(s).")
+            data_to_cache = new_episodes_found + cached_data
+
+            with open(CACHE_FILE, "w") as f:
+                json.dump(data_to_cache, f)
+                
+            episodes_to_process = new_episodes_found
+    else:
+        print("No cache found. Performing full scrape...")
+        data_to_cache = scraper.get_all_episodes(SERIES_ID)
+
+        with open(CACHE_FILE, "w") as f:
+            json.dump(data_to_cache, f)
+
+        episodes_to_process = data_to_cache
+
+    detailed_episode_data = []
+    total_new_scenes = 0
+
+    if episodes_to_process:
+        print(f"Processing {len(episodes_to_process)} episodes...")
+        processor = EpisodeProcessor()
+        detailed_episode_data = processor.process_batch(episodes_to_process)
+
+    db = ArchersDatabase()
+    try:
+        if detailed_episode_data:
+            total_new_scenes = db.add_episodes_with_scenes(detailed_episode_data)
+        
+        if total_new_scenes:
+            db.link_all_characters_to_scenes()
+    except Exception as e:
+        print(e)
+    finally:
+        db.close()
+    
+    print("Done.")
