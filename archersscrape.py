@@ -403,6 +403,45 @@ class ArchersDatabase:
             print(f"Database Error: {e}")
             return False
 
+
+    def cleanup_empty_scenes(self):
+        query = """
+        MATCH (e:Episode)<-[:PART_OF]-(empty:Scene)
+        WHERE NOT (empty)<-[:APPEARS_IN]-(:Character)
+        MATCH (target:Scene)-[:PART_OF]->(e)
+        WHERE target.order = empty.order - 1
+        RETURN empty.id AS empty_id, empty.text AS empty_text, 
+            target.id AS target_id, target.text AS target_text,
+            e.pid AS episode_pid
+        ORDER BY empty.id ASC
+        """
+
+        with self.driver.session() as session:
+            records = list(session.run(query))
+            
+            if not records:
+                print("No empty scenes with predecessors found.")
+                return
+
+            for i, rec in enumerate(records):
+                print(f"\n--- Match {i+1} of {len(records)} ---")
+                print(f"PREVIOUS SCENE ({rec['target_id']}): {rec['target_text'][:100]}...")
+                print(f"EMPTY SCENE    ({rec['empty_id']}): {rec['empty_text']}")
+                
+                choice = input(f"Merge {rec['empty_id']} into {rec['target_id']}? (y/n): ").lower()
+                
+                if choice == 'y':
+                    merge_query = """
+                    MATCH (target:Scene {id: $target_id})
+                    MATCH (empty:Scene {id: $empty_id})
+                    SET target.text = target.text + " " + empty.text
+                    DETACH DELETE empty
+                    """
+                    session.run(merge_query, target_id=rec['target_id'], empty_id=rec['empty_id'])
+                    print(f"Merged scene {rec['empty_id']}.")
+                else:
+                    print("Skipped.")
+
 def update_db(from_cache=False):
     SERIES_ID = os.getenv("SERIES_ID")
     CACHE_FILE = os.getenv("CACHE_FILE")
@@ -502,6 +541,8 @@ def main():
     link_parser.add_argument('--scenes', type=str, nargs='+', required=True, help='List of scene IDs (space-separated)')
     link_parser.add_argument('--character', type=str, required=True, help='Character name or ID')
 
+    cleanup_parser = subparsers.add_parser('cleanup', help='Review and merge empty scenes')
+
     args = parser.parse_args()
 
     if args.command == 'link':
@@ -520,6 +561,15 @@ def main():
 
     if args.command == 'update':
         update_db(args.from_cache)
+    elif args.command == 'cleanup':
+        db = ArchersDatabase()
+        try:
+            db.cleanup_empty_scenes()
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            db.close()
+        return
     else:
         parser.print_help()
 
