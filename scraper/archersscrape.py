@@ -301,7 +301,7 @@ class ArchersDatabase:
             MATCH (s:Scene)-[:PART_OF]->(e:Episode)
             WHERE s.text =~ $regex
               AND (c.dob IS NULL OR e.date >= c.dob)
-              AND (c.dod IS NULL OR e.date <= (c.dod + duration({years: 5})))
+              AND (c.dod IS NULL OR e.date <= c.dod)
               AND (c.first_appearance IS NULL OR e.date >= c.first_appearance)
               AND (c.last_appearance IS NULL OR e.date <= c.last_appearance)
             MERGE (c)-[:APPEARS_IN]->(s)
@@ -313,18 +313,16 @@ class ArchersDatabase:
             MATCH (s:Scene)-[:PART_OF]->(e:Episode)
             WHERE s.text =~ $regex
               AND (c.dob IS NULL OR e.date >= c.dob)
-              AND (c.dod IS NULL OR e.date <= (c.dod + duration({years: 5})))
+              AND (c.dod IS NULL OR e.date <= c.dod)
               AND (c.first_appearance IS NULL OR e.date >= c.first_appearance)
               AND (c.last_appearance IS NULL OR e.date <= c.last_appearance)
             
-            // Identify conflicting characters who were also alive/active during this episode
+            // Identify conflicting characters
             OPTIONAL MATCH (other:Character)
             WHERE other <> c 
               AND ANY(a IN other.aliases WHERE a IN $aliases)
               AND (other.dob IS NULL OR e.date >= other.dob)
-              AND (other.dod IS NULL OR e.date <= (other.dod + duration({years: 5})))
               AND (other.first_appearance IS NULL OR e.date >= other.first_appearance)
-              AND (other.last_appearance IS NULL OR e.date <= other.last_appearance)
             
             // Count total characters currently linked to the scene
             OPTIONAL MATCH (s)<-[:APPEARS_IN]-(anyone:Character)
@@ -345,7 +343,7 @@ class ArchersDatabase:
             // Resolution Logic
             WHERE s.text CONTAINS c.name
                OR active_conflicts = 0
-                OR (total_others > 0 AND (toFloat(family_present) / total_others) >= 0.5)
+               OR (total_others > 0 AND (toFloat(family_present) / total_others) >= 0.5)
 
             MERGE (c)-[:APPEARS_IN]->(s)
             RETURN count(s) as matches
@@ -425,7 +423,7 @@ class ArchersDatabase:
 
             for i, rec in enumerate(records):
                 print(f"\n--- Match {i+1} of {len(records)} ---")
-                print(f"PREVIOUS SCENE ({rec['target_id']}): {rec['target_text'][:100]}...")
+                print(f"PREVIOUS SCENE ({rec['target_id']}): {rec['target_text']}")
                 print(f"EMPTY SCENE    ({rec['empty_id']}): {rec['empty_text']}")
                 
                 choice = input(f"Merge {rec['empty_id']} into {rec['target_id']}? (y/n): ").lower()
@@ -519,10 +517,8 @@ def update_db(from_cache=False):
     db = ArchersDatabase()
     try:
         if detailed_episode_data:
-            total_new_scenes = db.add_episodes_with_scenes(detailed_episode_data)
-
-            if total_new_scenes:
-                db.link_all_characters_to_scenes()
+            db.add_episodes_with_scenes(detailed_episode_data)
+            db.link_all_characters_to_scenes()
     except Exception as e:
         print(f"Database Error: {e}")
     finally:

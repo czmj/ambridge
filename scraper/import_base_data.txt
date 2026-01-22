@@ -12,6 +12,7 @@ DETACH DELETE e;
 
 CREATE CONSTRAINT episode_pid_key IF NOT EXISTS FOR (e:Episode) REQUIRE e.pid IS NODE KEY;
 CREATE CONSTRAINT scene_id_key IF NOT EXISTS FOR (s:Scene) REQUIRE s.id IS NODE KEY;
+CREATE CONSTRAINT character_slug_unique IF NOT EXISTS FOR (c:Character) REQUIRE c.slug IS UNIQUE;
 
 MERGE (abbie:Character {name: "Abbie Tucker", aliases: ["Abbie"], dob: date("2008-03-07")})
 MERGE (adam:Character {name: "Adam Macy", aliases: ["Adam"], dob: date("1967-06-22")})
@@ -57,7 +58,7 @@ MERGE (helen:Character {name: "Helen Archer", aliases: ["Helen"], dob: date("197
 MERGE (henry:Character {name: "Henry Archer", aliases: ["Henry"], dob: date("2011-01-02")})
 MERGE (ian:Character {name: "Ian Craig", aliases: ["Ian"]})
 MERGE (ivy:Character {name: "Ivy Horrobin", aliases: ["Ivy"], dod: date("2011-11-01")})
-MERGE (jackASr:Character {name: "Jack Archer", aliases: ["Jack"], dob: date("1922-12-17"), dod: date("1972-01-11")})
+MERGE (jackASr:Character {name: "Jack Archer (Sr.)", aliases: ["Jack"], dob: date("1922-12-17"), dod: date("1972-01-11")})
 MERGE (jackA:Character {name: "Jack Archer", aliases: ["Jack"], dob: date("2016-05-21")})
 MERGE (jackW:Character {name: "Jack Woolley", aliases: ["Jack"], dob: date("1919-07-19"), dod: date("2014-01-02")})
 MERGE (jakob:Character {name: "Jakob Hakansson", aliases: ["Jakob"]})
@@ -108,9 +109,9 @@ MERGE (peggy:Character {name: "Peggy Woolley", aliases: ["Peggy"], dob: date("19
 MERGE (phil:Character {name: "Phil Archer", aliases: ["Phil"], dod: date("2010-02-12")})
 MERGE (phoebe:Character {name: "Phoebe Aldridge", aliases: ["Phoebe"], dob: date("1998-12-16")})
 MERGE (pip:Character {name: "Pip Archer", aliases: ["Pip", "Phiz"], dob: date("1993-02-17")})
-MERGE (poppy:Character {name: "Poppy Grundy", aliases: ["Poppy"], dob: date("2015-01-01")})
+MERGE (poppy:Character {name: "Poppy Grundy", aliases: ["Poppy"], dob: date("2015-09-30")})
 MERGE (rex:Character {name: "Rex Fairbrother", aliases: ["Rex"]})
-MERGE (rob:Character {name: "Rob Titchener", aliases: ["Rob"], dod: date("2023-12-01")})
+MERGE (rob:Character {name: "Rob Titchener", aliases: ["Rob"], dod: date("2023-11-19")})
 MERGE (robert:Character {name: "Robert Snell", aliases: ["Robert"], dob: date("1943-04-05")})
 MERGE (rochelle:Character {name: "Rochelle", aliases: ["Rochelle"]})
 MERGE (rosie:Character {name: "Rosie Archer", aliases: ["Rosie"], dob: date("2018-05-13")})
@@ -298,7 +299,7 @@ MERGE (alan)-[:SPOUSE {status: "current"}]->(usha)
 MERGE (lynda)-[:SPOUSE {status: "current"}]->(robert)
 MERGE (peggy)-[:SPOUSE {status: "past", notes: "Widowed"}]->(jackW)
 MERGE (azra)-[:SPOUSE {status: "current"}]->(akram)
-MERGE (helen)-[:SPOUSE {status: "past", notes: "Widowed"}]->(rob)
+MERGE (helen)-[:SPOUSE {status: "past", notes: "Divorced"}]->(rob)
 MERGE (ivy)-[:SPOUSE {status: "past", notes: "Widowed"}]->(bertH)
 MERGE (freda)-[:SPOUSE {status: "past", notes: "Widowed"}]->(bert)
 MERGE (shula)-[:SPOUSE {status: "past", notes: "Widowed"}]->(markH)
@@ -316,3 +317,11 @@ WHERE NOT (b)-[:SPOUSE]->(a)
 MERGE (b)-[r2:SPOUSE]->(a)
 SET r2 = properties(r)
 RETURN count(r2) AS relationships_mirrored;
+
+MATCH (c:Character)
+WITH c, 
+     toLower(c.name) AS lowName
+WITH c, apoc.text.replace(lowName, '[().]', '') AS noSpecial
+WITH c, apoc.text.replace(noSpecial, '[^a-z0-9]+', '-') AS slugged
+SET c.slug = apoc.text.replace(slugged, '-$', '')
+RETURN c.name, c.slug;
