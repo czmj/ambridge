@@ -325,3 +325,50 @@ WITH c, apoc.text.replace(lowName, '[().]', '') AS noSpecial
 WITH c, apoc.text.replace(noSpecial, '[^a-z0-9]+', '-') AS slugged
 SET c.slug = apoc.text.replace(slugged, '-$', '')
 RETURN c.name, c.slug;
+
+MATCH (c:Character)
+WHERE c.name IN [
+  "Adam Macy", "Akram Malik", "Xander Macy-Craig", "Alan Franks", 
+  "Alistair Lloyd", "Ben Archer", "Bert Fry", "Bert Horrobin", 
+  "Brad Horrobin", "Brian Aldridge", "Christopher Carter", 
+  "Clive Horrobin", "Dan Hebden Lloyd", "Daniel Archer", 
+  "David Archer", "Ed Grundy", "Eddie Grundy", "Freddie Pargetter", 
+  "George Grundy", "Harrison Burns", "Henry Archer", "Ian Craig", 
+  "Jack Archer (Sr.)", "Jack Archer", "Jack Woolley", "Jakob Hakansson", 
+  "James Bellamy", "Jazzer McCreary", "Jim Lloyd", "Joe Grundy", 
+  "John Archer", "Johnny Phillips", "Josh Archer", "Justin Elliott", 
+  "Justin Bamford", "Keith Horrobin", "Kenton Archer", "Khalil Malik", 
+  "Lawrence Harrington", "Lee Bryce", "Leonard Berry", "Mark Hebden", "Martyn Gibson", 
+  "Mick Fadmoor", "Mike Tucker", "Neil Carter", "Nigel Pargetter", 
+  "Oliver Sterling", "Paul Mack", "Phil Archer", "Rex Fairbrother", 
+  "Rob Titchener", "Robert Snell", "Ruairi Donovan", "Toby Fairbrother", 
+  "Tom Archer", "Tony Archer", "Vince Casey", "Will Grundy", 
+  "Roy Tucker", "Philip Moss", "Gavin Moss", "Blake Goddard", 
+  "Darrell Makepeace", "Matt Crawford", "Lucas Madikane", "Sipho Madikane", 
+  "Jamie Perks", "Chuck", "Greg Turner", "Markie"
+]
+SET c.gender = "Male"
+RETURN count(c) AS males_updated;
+
+MATCH (c:Character)
+WHERE c.name IN [
+  "Abbie Tucker", "Alice Aldridge", "Amber Gordon", "Amy Franks", 
+  "Azra Malik", "Freda Fry", "Carly Carter", "Caroline Sterling", 
+  "Chelsea Horrobin", "Christine Barford", "Clarrie Grundy", 
+  "Coriander Snell", "Debbie Aldridge", "Doris Archer", "Elizabeth Pargetter", 
+  "Emma Grundy", "Esme Mulligan", "Fallon Rogers", "Grace Archer", 
+  "Hannah Riley", "Helen Archer", "Ivy Horrobin", "Jennifer Aldridge", 
+  "Jill Archer", "Jolene Archer", "Joy Horville", "Kate Madikane", 
+  "Keira Grundy", "Kirsty Miller", "Leonie Snell", "Lilian Bellamy", 
+  "Lily Pargetter", "Lottie", "Lynda Snell", "Marjorie Antrobus", 
+  "Martha Carter", "Mia Grundy", "Miranda Elliott", "Natasha Archer", 
+  "Nic Grundy", "Pat Archer", "Peggy Woolley", "Phoebe Aldridge", 
+  "Pip Archer", "Poppy Grundy", "Rochelle", "Rosie Archer", 
+  "Ruth Archer", "Sharon Richards", "Shula Hebden Lloyd", "Siobhan Hathaway", 
+  "Stella Pryor", "Susan Carter", "Tracy Horrobin", "Usha Franks", 
+  "Zainab Malik", "Hayley Tucker", "Vicky Tucker", "Carol Tregorran", 
+  "Bethany Tucker", "Brenda Tucker", "Noluthando Madikane", "Kathy Perks", 
+  "Faith", "Annette Turner"
+]
+SET c.gender = "Female"
+RETURN count(c) AS females_updated;
