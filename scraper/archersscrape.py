@@ -126,7 +126,7 @@ class EpisodeProcessor:
             r'Rural drama(?: series)?(?: set in Ambridge)?|'
             r'Contemporary drama in a rural setting|'
             r'The week\'s events in Ambridge|'
-            r')\.?\s*'
+            r')\.?\s*$'
         )
         credit_markers = (
             "Written by", "Writer", "WRITER", "Episode written by",
@@ -144,29 +144,25 @@ class EpisodeProcessor:
             return None
 
         scenes_to_clean = []
+        for s in raw_scenes:
+            # Stop processing at the credits
+            if (len(s) < 100 and re.search(ellipses_pattern, s)) or s.startswith(credit_markers):
+                break
+            # Merge lines starting with a lowercase letter with previous scene
+            if scenes_to_clean and s[0].islower():
+                scenes_to_clean[-1] = f"{scenes_to_clean[-1]} {s}"
+                continue
 
-        # If the first scene is a credit marker, fall back to synopsis
-        if any(raw_scenes[0].startswith(m) for m in credit_markers):
-            scenes_to_clean.append(episode.get("synopsis"))
-        else:
-            for s in raw_scenes:
-                # If the scene containes ellipses or credit markers, stop processing
-                if re.search(ellipses_pattern, s) or s.startswith(credit_markers):
-                    break
-                # Merge lines starting with a lowercase letter with previous scene
-                if scenes_to_clean and s[0].islower():
-                    scenes_to_clean[-1] = f"{scenes_to_clean[-1]} {s}"
-                    continue
+            scenes_to_clean.append(s)
+        
+        if not len(scenes_to_clean):
+            scenes_to_clean = [episode.get("synopsis")]
 
-                scenes_to_clean.append(s)
-
-        filtered_scenes = []
         # Remove boilerplate like "Rural drama series" from each scene.
-        for scene in scenes_to_clean:
-            cleaned_text = re.sub(boilerplate_pattern, "", scene, flags=re.IGNORECASE).strip()
-            
-            if cleaned_text:
-                filtered_scenes.append(cleaned_text)
+        filtered_scenes = [
+            s for s in scenes_to_clean 
+            if not re.match(boilerplate_pattern, s.strip())
+        ]
 
         return {
             **episode,
@@ -216,131 +212,94 @@ class ArchersDatabase:
 
     def add_episodes_with_scenes(self, episode_list):
         query = """
-        MERGE (e:Episode {pid: $pid})
-        ON CREATE SET e.date = date($date),
-                      e.synopsis = $synopsis
+        UNWIND $batch AS ep
+        MERGE (e:Episode {pid: ep.pid})
+        ON CREATE SET e.date = date(ep.date),
+                    e.synopsis = ep.synopsis
         
-        WITH e
-        UNWIND $scenes AS scene_data
-        
-        MERGE (s:Scene {id: $pid + "_" + toString(scene_data.index)})
-        SET s.order = scene_data.index
-        SET s.text = scene_data.text
-        
-        MERGE (s)-[:PART_OF]->(e)   
+        WITH e, ep
+        UNWIND ep.scenes AS scene_data
+        MERGE (s:Scene {id: scene_data.sid})
+        SET s.order = scene_data.index,
+            s.text = scene_data.text
+        MERGE (s)-[:PART_OF]->(e)
         """
 
-        with self.driver.session() as session:
-            new_episodes_count = 0
-            existing_episodes_count = 0
-            total_scenes_added = 0
-            total_to_process = len(episode_list)
-
-            for i, ep in enumerate(episode_list):
-                indexed_scenes = [
-                    {"text": text, "index": i} 
+        formatted_batch = []
+        for ep in episode_list:
+            pid = ep["pid"]
+            formatted_batch.append({
+                "pid": pid,
+                "date": ep["date"],
+                "synopsis": ep["synopsis"],
+                "scenes": [
+                    {
+                        "sid": f"{pid}_{i}",
+                        "index": i, 
+                        "text": text
+                    } 
                     for i, text in enumerate(ep["scenes"])
                 ]
-                
-                result = session.run(
-                    query,
-                    pid=ep["pid"],
-                    date=ep["date"],
-                    synopsis=ep["synopsis"],
-                    scenes=indexed_scenes
-                )
-                
-                summary = result.consume()
-            
-                if summary.counters.nodes_created > 0:
-                    new_episodes_count += 1
-                    total_scenes_added += (summary.counters.nodes_created - 1)
-                else:
-                    existing_episodes_count += 1
-                
-                print(f"Adding episodes to DB: {i+1}/{total_to_process} | New: {new_episodes_count} | Existing: {existing_episodes_count} | Scenes Added: {total_scenes_added}", end='\r')
-            
-            print(f"\n")
-            return total_scenes_added
+            })
+
+        with self.driver.session() as session:
+            result = session.run(query, batch=formatted_batch)
+            summary = result.consume()
+            new_nodes = summary.counters.nodes_created
+
+            print(f"Added {new_nodes} new node(s) to database.")
+
+            return new_nodes
 
     def handle_duplicate_episodes(self):
-        query = """
-        MATCH (e:Episode)
-        MATCH (s:Scene)-[:PART_OF]->(e)
-        WITH e, s.text AS sceneText
-        ORDER BY e.date ASC, s.id ASC
+        queries = {
+            "orphans": """
+                MATCH (e:Episode)
+                WHERE (e.synopsis CONTAINS "The week's events in Ambridge" 
+                OR e.synopsis CONTAINS "Contemporary drama in a rural setting")
+                AND NOT (e)<-[:PART_OF]-(:Scene)
+                DETACH DELETE e RETURN count(*) as count""",
+            "exact_duplicates": """
+                MATCH (s:Scene)-[:PART_OF]->(e:Episode)
+                WITH e, e.synopsis as syn, s.text as txt ORDER BY e.date, s.id
+                WITH e, syn, collect(txt) as seq ORDER BY e.date, e.pid
+                WITH syn, seq, collect(e) as eps WHERE size(eps) > 1
+                UNWIND eps[1..] as d
+                OPTIONAL MATCH (ds:Scene)-[:PART_OF]->(d)
+                DETACH DELETE d, ds RETURN count(d) as count""",
+            "thin_repeats": """
+                MATCH (s:Scene)-[:PART_OF]->(e:Episode)
+                WITH e, e.date as d, count(s) as c ORDER BY d DESC, c DESC
+                WITH d, collect({n: e, c: c}) as list WHERE size(list) = 2 AND list[0].c > 1 AND list[1].c = 1
+                WITH list[1].n as d
+                OPTIONAL MATCH (ds:Scene)-[:PART_OF]->(d)
+                DETACH DELETE d, ds RETURN count(d) as count""",
+            "date_shifts": """
+                MATCH (e:Episode)
+                WITH e.date as cur, collect(e) as list WHERE size(list) = 2
+                OPTIONAL MATCH (y:Episode) WHERE y.date = cur - duration({days: 1})
+                WITH cur, list, y WHERE y IS NULL
 
-        // Create a fingerprint based on synopsis and ordered scene content
-        WITH e, 
-            e.synopsis AS synopsis,
-            collect(sceneText) AS sceneSequence
-        ORDER BY e.date ASC, e.pid ASC
+                // Calculate target date and check it isn't Saturday (6)
+                WITH list[1] as target, cur, (cur - duration({days: 1})) as newDate
+                WHERE newDate.dayOfWeek <> 6
 
-        // Identify duplicates
-        WITH synopsis,
-            sceneSequence, 
-            collect(e) AS episodes
-        WHERE size(episodes) > 1
+                SET target.date = newDate
+                RETURN count(target) as count"""
+        }
 
-        // Delete with scenes
-        UNWIND episodes[1..] AS discard
-        OPTIONAL MATCH (discard)-[:HAS_SCENE]->(ds:Scene)
-        DETACH DELETE discard, ds
-        RETURN count(discard) AS deletedCount
-        """
+        print("Cleaning up duplicates...")
 
-        query2 = """
-        MATCH (s:Scene)-[:PART_OF]->(e:Episode)
-        WITH e, e.date AS epDate, count(s) AS sceneCount
-        ORDER BY epDate DESC, sceneCount DESC
-        WITH epDate, collect({node: e, count: sceneCount}) AS episodeList
-        WHERE size(episodeList) = 2 AND episodeList[0].count > 1 AND episodeList[1].count = 1
-        WITH episodeList[1].node AS discard
-        OPTIONAL MATCH (ds:Scene)-[:PART_OF]->(discard)
-        DETACH DELETE discard, ds
-        RETURN count(discard) AS deletedCount
-        """
-
-        query3 = """
-        MATCH (e:Episode)
-        WITH e.date AS currentDate, collect(e) AS episodeList
-        WHERE size(episodeList) = 2
-
-        OPTIONAL MATCH (yesterday:Episode)
-        WHERE yesterday.date = currentDate - duration({days: 1})
-
-        WITH currentDate, episodeList, yesterday
-        WHERE yesterday IS NULL
-
-        WITH episodeList[1] AS targetNode, currentDate
-        SET targetNode.date = currentDate - duration({days: 1})
-
-        RETURN count(targetNode) as movedCount
-        """
-        
+        results = {}
         with self.driver.session() as session:
-            result = session.run(query)
-            record = result.single()
-            count1 = record["deletedCount"] if record else 0
+            for key, cypher in queries.items():
+                res = session.run(cypher).single()
+                results[key] = res["count"] if res else 0
 
-            if count1 > 0:
-                print(f"Deleted {count1} duplicate episodes and their scenes.")
-
-            result = session.run(query2)
-            record = result.single()
-            count2 = record["deletedCount"] if record else 0
-
-            if count2 > 0:
-                print(f"Deleted {count2} repeats and their scenes.")
-            
-            result = session.run(query3)
-            record = result.single()
-            count3 = record["movedCount"] if record else 0
-
-            if count3 > 0:
-                print(f"Changed date of {count3} repeats.")
-
-            return count1 + count2 + count3
+        total = sum(results.values())
+        if total > 0:
+            print(f"Cleanup complete: {results}")
+        return total
         
     def get_character_segments(self):
         shared_terms_query = """
