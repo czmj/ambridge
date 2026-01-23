@@ -144,18 +144,24 @@ class EpisodeProcessor:
             return None
 
         scenes_to_clean = []
+
+        # If the first scene is a credit marker, fall back to synopsis
         if any(raw_scenes[0].startswith(m) for m in credit_markers):
             scenes_to_clean.append(episode.get("synopsis"))
         else:
             for s in raw_scenes:
+                # If the scene containes ellipses or credit markers, stop processing
                 if re.search(ellipses_pattern, s) or s.startswith(credit_markers):
                     break
+                # Merge lines starting with a lowercase letter with previous scene
                 if scenes_to_clean and s[0].islower():
                     scenes_to_clean[-1] = f"{scenes_to_clean[-1]} {s}"
                     continue
+
                 scenes_to_clean.append(s)
 
         filtered_scenes = []
+        # Remove boilerplate like "Rural drama series" from each scene.
         for scene in scenes_to_clean:
             cleaned_text = re.sub(boilerplate_pattern, "", scene, flags=re.IGNORECASE).strip()
             
@@ -257,6 +263,85 @@ class ArchersDatabase:
             print(f"\n")
             return total_scenes_added
 
+    def handle_duplicate_episodes(self):
+        query = """
+        MATCH (e:Episode)
+        MATCH (s:Scene)-[:PART_OF]->(e)
+        WITH e, s.text AS sceneText
+        ORDER BY e.date ASC, s.id ASC
+
+        // Create a fingerprint based on synopsis and ordered scene content
+        WITH e, 
+            e.synopsis AS synopsis,
+            collect(sceneText) AS sceneSequence
+        ORDER BY e.date ASC, e.pid ASC
+
+        // Identify duplicates
+        WITH synopsis,
+            sceneSequence, 
+            collect(e) AS episodes
+        WHERE size(episodes) > 1
+
+        // Delete with scenes
+        UNWIND episodes[1..] AS discard
+        OPTIONAL MATCH (discard)-[:HAS_SCENE]->(ds:Scene)
+        DETACH DELETE discard, ds
+        RETURN count(discard) AS deletedCount
+        """
+
+        query2 = """
+        MATCH (s:Scene)-[:PART_OF]->(e:Episode)
+        WITH e, e.date AS epDate, count(s) AS sceneCount
+        ORDER BY epDate DESC, sceneCount DESC
+        WITH epDate, collect({node: e, count: sceneCount}) AS episodeList
+        WHERE size(episodeList) = 2 AND episodeList[0].count > 1 AND episodeList[1].count = 1
+        WITH episodeList[1].node AS discard
+        OPTIONAL MATCH (ds:Scene)-[:PART_OF]->(discard)
+        DETACH DELETE discard, ds
+        RETURN count(discard) AS deletedCount
+        """
+
+        query3 = """
+        MATCH (e:Episode)
+        WITH e.date AS currentDate, collect(e) AS episodeList
+        WHERE size(episodeList) = 2
+
+        OPTIONAL MATCH (yesterday:Episode)
+        WHERE yesterday.date = currentDate - duration({days: 1})
+
+        WITH currentDate, episodeList, yesterday
+        WHERE yesterday IS NULL
+
+        WITH episodeList[1] AS targetNode, currentDate
+        SET targetNode.date = currentDate - duration({days: 1})
+
+        RETURN count(targetNode) as movedCount
+        """
+        
+        with self.driver.session() as session:
+            result = session.run(query)
+            record = result.single()
+            count1 = record["deletedCount"] if record else 0
+
+            if count1 > 0:
+                print(f"Deleted {count1} duplicate episodes and their scenes.")
+
+            result = session.run(query2)
+            record = result.single()
+            count2 = record["deletedCount"] if record else 0
+
+            if count2 > 0:
+                print(f"Deleted {count2} repeats and their scenes.")
+            
+            result = session.run(query3)
+            record = result.single()
+            count3 = record["movedCount"] if record else 0
+
+            if count3 > 0:
+                print(f"Changed date of {count3} repeats.")
+
+            return count1 + count2 + count3
+        
     def get_character_segments(self):
         shared_terms_query = """
             MATCH (c:Character)
@@ -519,7 +604,9 @@ def update_db(from_cache=False):
     try:
         if detailed_episode_data:
             db.add_episodes_with_scenes(detailed_episode_data)
-            db.link_all_characters_to_scenes()
+    
+        db.handle_duplicate_episodes()
+        db.link_all_characters_to_scenes()
     except Exception as e:
         print(f"Database Error: {e}")
     finally:
