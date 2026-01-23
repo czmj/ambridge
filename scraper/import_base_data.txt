@@ -63,7 +63,7 @@ MERGE (johnny:Character {name: "Johnny Phillips", aliases: ["Johnny", "Rich"], d
 MERGE (jolene:Character {name: "Jolene Archer", aliases: ["Jolene"], gender: "Female"})
 MERGE (josh:Character {name: "Josh Archer", aliases: ["Josh"], dob: date("1997-09-13"), gender: "Male"})
 MERGE (joy:Character {name: "Joy Horville", aliases: ["Joy"], gender: "Female"})
-MERGE (justinElliott:Character {name: "Justin Elliott", aliases: ["Justin"], first_appearance: date("2014-04-09"), gender: "Male"})
+MERGE (justinElliott:Character {name: "Justin Elliott", aliases: ["Justin", "Justin Elliot"], first_appearance: date("2014-04-09"), gender: "Male"})
 MERGE (justinBamford:Character {name: "Justin Bamford", aliases: ["Justin"], last_appearance: date("2010-12-30"), gender: "Male"})
 MERGE (kate:Character {name: "Kate Madikane", aliases: ["Kate"], dob: date("1977-09-30"), gender: "Female"})
 MERGE (keith:Character {name: "Keith Horrobin", aliases: ["Keith"], dob: date("1964-12-01"), gender: "Male"})

@@ -17,10 +17,12 @@ type TimelineProps = {
 
 export default function Timeline({ episodes, totalCount, currentPage, baseUrl, pageSize, sort = 'desc' }: TimelineProps) {
   const totalPages = Math.ceil(totalCount / pageSize);
+  const hasEpisodes = episodes.length > 0;
+  const hasMultiplePages = totalPages > 1;
 
   return (
     <div>
-      {!!episodes.length && (
+      {hasEpisodes ? (
         <>
           <SortOrder baseUrl={baseUrl} currentSort={sort} />
           <div className="space-y-16 border-l-4 border-blue-500 ml-3">
@@ -61,7 +63,6 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
                     <span>
                       <ListenAgain pid={ep.pid} date={ep.date} />
                     </span>
-
                   </p>
                 </header>
 
@@ -81,27 +82,32 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
                   ))}
                 </div>
               </div>
-            )
-            )}
+            ))}
           </div>
         </>
+      ) : (
+        <div className="py-20 text-center">
+          <p>No appearances found</p>
+        </div>
       )}
 
-      <Subtitle className="mt-20 py-10 border-t border-gray-200 flex justify-between items-center" as='div'>
-        {currentPage > 1 ? (
-          <Link href={`${baseUrl}?page=${currentPage - 1}&sort=${sort}`} className="hover:text-blue-600 text-gray-900 transition-colors flex items-center gap-1">
-            <MoveLeft size={12} /> {sort === 'desc' ? 'Newer' : 'Older'}
-          </Link>
-        ) : <div />}
+      {hasMultiplePages && (
+        <Subtitle className="mt-12 py-10 border-t border-gray-200 flex justify-between items-center" as='div'>
+          {currentPage > 1 ? (
+            <Link href={`${baseUrl}?page=${Math.min(currentPage,totalPages) - 1}&sort=${sort}`} className="hover:text-blue-600 text-gray-900 transition-colors flex items-center gap-1">
+              <MoveLeft size={12} /> {sort === 'desc' ? 'Newer' : 'Older'}
+            </Link>
+          ) : <div />}
 
-        {totalPages ? (<span>Page {currentPage} / {totalPages}</span>) : <p>No appearances</p>}
+          <span>Page {currentPage} / {totalPages}</span>
 
-        {totalPages && currentPage < totalPages ? (
-          <Link href={`${baseUrl}?page=${currentPage + 1}&sort=${sort}`} className="hover:text-blue-600 text-gray-900 transition-colors flex items-center gap-1">
-            {sort === 'desc' ? 'Older' : 'Newer'} <MoveRight size={12} />
-          </Link>
-        ) : <div />}
-      </Subtitle>
+          {currentPage < totalPages ? (
+            <Link href={`${baseUrl}?page=${currentPage + 1}&sort=${sort}`} className="hover:text-blue-600 text-gray-900 transition-colors flex items-center gap-1">
+              {sort === 'desc' ? 'Older' : 'Newer'} <MoveRight size={12} />
+            </Link>
+          ) : <div />}
+        </Subtitle>
+      )}
     </div>
   );
 }
