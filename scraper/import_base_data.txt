@@ -77,7 +77,7 @@ MERGE (justinElliott:Character {name: "Justin Elliott", aliases: ["Justin"], fir
 MERGE (justinBamford:Character {name: "Justin Bamford", aliases: ["Justin"], last_appearance: date("2010-12-30")})
 MERGE (kate:Character {name: "Kate Madikane", aliases: ["Kate"], dob: date("1977-09-30")})
 MERGE (keith:Character {name: "Keith Horrobin", aliases: ["Keith"], dob: date("1964-12-01")})
-MERGE (keira:Character {name: "Keira Grundy", aliases: ["Keira"], dob: date("2013-05-15")})
+MERGE (keira:Character {name: "Keira Grundy", aliases: ["Keira"], dob: date("2011-04-06")})
 MERGE (kenton:Character {name: "Kenton Archer", aliases: ["Kenton"], dob: date("1958-08-08")})
 MERGE (khalil:Character {name: "Khalil Malik", aliases: ["Khalil"]})
 MERGE (kirsty:Character {name: "Kirsty Miller", aliases: ["Kirsty"], dob: date("1981-05-05")})

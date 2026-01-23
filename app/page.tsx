@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getMasterTimeline } from './actions';
+import { getTimeline } from './actions';
 import Timeline from '@/components/Timeline';
 
 export default async function Home({ searchParams }) {
@@ -8,7 +8,7 @@ export default async function Home({ searchParams }) {
   const pageSize = 10;
 
   // Fetch the global data
-  const { episodes, totalCount } = await getMasterTimeline(currentPage, pageSize);
+  const { episodes, totalCount } = await getTimeline(currentPage, pageSize);
 
   return (
     <div className="max-w-5xl mx-auto p-6">

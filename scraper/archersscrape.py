@@ -133,7 +133,8 @@ class EpisodeProcessor:
             "Directed by", "Director", "DIRECTOR",
             "Edited by", "Editor", "EDITED BY",
             "Repeated on",
-            "If you are feeling" # actionline blurb
+            "If you are feeling", # actionline blurb
+            "If you have been affected"
         )
 
         text_to_process = episode.get("blurb") or episode.get("synopsis")

@@ -1,5 +1,5 @@
 import { formatDate } from '../../../lib/utils';
-import { getCharacterProfile, getCharacterTimeline } from '../../actions';
+import { getCharacterProfile, getTimeline } from '../../actions';
 import Timeline from '@/components/Timeline';
 
 export default async function CharacterProfile({ params, searchParams }) {
@@ -10,7 +10,7 @@ export default async function CharacterProfile({ params, searchParams }) {
   const pageSize = 10;
 
   const profile = await getCharacterProfile(slug);
-  const { episodes, totalCount } = await getCharacterTimeline(slug, currentPage, pageSize);
+  const { episodes, totalCount } = await getTimeline(currentPage, pageSize, slug);
 
   if (!profile) return <div>Character not found</div>;
 
