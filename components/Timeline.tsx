@@ -1,7 +1,8 @@
 import { formatDate } from '@/lib/utils';
-import { ExternalLink, MoveLeft, MoveRight } from 'lucide-react';
+import { MoveLeft, MoveRight } from 'lucide-react';
 import Link from 'next/link';
 import CharacterList from './CharacterList';
+import ListenAgain from './ListenAgain';
 import SortOrder from './SortOrder';
 import { Subtitle } from './Typography';
 
@@ -11,10 +12,10 @@ type TimelineProps = {
   currentPage: number,
   baseUrl: string,
   pageSize: number,
-  sort: 'asc'|'desc'
+  sort?: 'asc' | 'desc'
 }
 
-export default function Timeline({ episodes, totalCount, currentPage, baseUrl, pageSize, sort }: TimelineProps) {
+export default function Timeline({ episodes, totalCount, currentPage, baseUrl, pageSize, sort = 'desc' }: TimelineProps) {
   const totalPages = Math.ceil(totalCount / pageSize);
   const today = new Date().getTime();
   const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
@@ -56,17 +57,21 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
                       year: 'numeric',
                     })}
                   </h2>
-                  {isAvailableToListen(ep.date) && (
-                    <p>
-                      <a
-                        href={`https://www.bbc.co.uk/programmes/${ep.pid}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-blue-600 text-gray-500 text-sm inline-flex gap-1 items-center"
-                      >
-                        Listen again on BBC Sounds <ExternalLink size={14} aria-label="(Opens in new tab)" />
-                      </a>
-                    </p>)}
+                  <p className="text-gray-500 text-sm inline-flex gap-2">
+                    <Link
+                      href={`/on/${ep.date}`}
+                      className="hover:text-blue-600 transition-colors"
+                    >
+                      View episode
+                    </Link>
+                    {isAvailableToListen(ep.date) && (
+                      <>
+                        <span aria-hidden="true" className="text-gray-300">|</span>
+                        <span>
+                          <ListenAgain pid={ep.pid} />
+                        </span>
+                      </>)}
+                  </p>
                 </header>
 
                 <div className="space-y-6">

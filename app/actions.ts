@@ -21,10 +21,20 @@ export async function getCharacterProfile(slug: string) {
   }
 }
 
-export async function getTimeline(page = 1, pageSize = 10, order = 'DESC', slug = null) {
-  const session = driver.session();
+export async function getTimeline({
+  page = 1,
+  pageSize = 10,
+  sort = 'desc',
+  slug,
+}: {
+  page?: number,
+  pageSize?: number,
+  sort?: 'asc' | 'desc',
+  slug?: string,
+} = {}) {
+ const session = driver.session();
   const skip = (page - 1) * pageSize;
-  const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+  const sortOrder = sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
   try {
     const cypher = `

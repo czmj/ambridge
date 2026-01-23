@@ -18,7 +18,7 @@ export default function CharacterList({ characters = [] }: CharacterListProps) {
         return (
           <Link
             key={key}
-            href={`/character/${c.slug}`}
+            href={`/to/${c.slug}`}
             className="px-2 py-1 bg-blue-50 text-blue-700 text-sm rounded-full border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors"
           >
             {c.name}

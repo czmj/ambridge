@@ -8,7 +8,7 @@ type CharacterPageProps = {
     slug: string
   },
   searchParams: {
-    sort?: string
+    sort?: 'asc' | 'desc'
     page?: string
   }
 }
@@ -18,11 +18,11 @@ export default async function CharacterPage({ params, searchParams }: CharacterP
   const resolvedSearch = await searchParams;
   const slug = resolvedParams.slug;
   const sort = resolvedSearch.sort;
-  const currentPage = resolvedSearch.page ? parseInt(resolvedSearch.page) : 1;
+  const page = resolvedSearch.page ? parseInt(resolvedSearch.page) : 1;
   const pageSize = 10;
 
   const profile = await getCharacterProfile(slug);
-  const { episodes, totalCount } = await getTimeline(currentPage, pageSize, sort, slug);
+  const { episodes, totalCount } = await getTimeline({ page, pageSize, sort, slug });
 
   if (!profile) return <div>Character not found</div>;
 
@@ -31,7 +31,7 @@ export default async function CharacterPage({ params, searchParams }: CharacterP
   return (
     <>
       <header className="my-12 border-b border-gray-200 pb-2">
-        <h1 className="text-4xl mb-2">What happened with <span className="font-bold">{details.name}</span>?</h1>
+        <h1 className="text-4xl mb-2">What happened to <span className="font-bold">{details.name}</span>?</h1>
         <Subtitle>
           {details.dob ? `Born: ${formatDate(details.dob)}` : 'Date of Birth Unknown'}
           {details.dod ? ` - Died: ${formatDate(details.dod)}` : ''}
@@ -41,8 +41,8 @@ export default async function CharacterPage({ params, searchParams }: CharacterP
       <Timeline
         episodes={episodes}
         totalCount={totalCount}
-        currentPage={currentPage}
-        baseUrl={`/character/${slug}`}
+        currentPage={page}
+        baseUrl={`/to/${slug}`}
         pageSize={pageSize}
         sort={sort}
       />

@@ -4,18 +4,18 @@ import { getTimeline } from './actions';
 
 type HomePageProps = {
   searchParams: {
-    sort?: 'asc'|'desc'
+    sort?: 'asc' | 'desc'
     page?: string
   }
 }
 
 export default async function Home({ searchParams }: HomePageProps) {
   const resolvedSearch = await searchParams;
-  const currentPage = resolvedSearch.page ? parseInt(resolvedSearch.page) : 1;
+  const page = resolvedSearch.page ? parseInt(resolvedSearch.page) : 1;
   const pageSize = 10;
-  const sort = resolvedSearch.sort || 'desc';
+  const sort = resolvedSearch.sort;
 
-  const { episodes, totalCount } = await getTimeline(currentPage, pageSize, sort);
+  const { episodes, totalCount } = await getTimeline({ page, pageSize, sort });
 
   return (
     <>
@@ -29,7 +29,7 @@ export default async function Home({ searchParams }: HomePageProps) {
       <Timeline
         episodes={episodes}
         totalCount={totalCount}
-        currentPage={currentPage}
+        currentPage={page}
         pageSize={pageSize}
         baseUrl="/"
         sort={sort}
