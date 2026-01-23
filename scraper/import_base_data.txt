@@ -17,7 +17,7 @@ CREATE CONSTRAINT character_slug_unique IF NOT EXISTS FOR (c:Character) REQUIRE 
 MERGE (abbie:Character {name: "Abbie Tucker", aliases: ["Abbie"], dob: date("2008-03-07")})
 MERGE (adam:Character {name: "Adam Macy", aliases: ["Adam"], dob: date("1967-06-22")})
 MERGE (akram:Character {name: "Akram Malik", aliases: ["Akram"]})
-MERGE (xander:Character {name: "Alexander Macy-Craig (Xander)", aliases: ["Xander"], dob: date("2019-09-24")})
+MERGE (xander:Character {name: "Xander Macy-Craig", aliases: ["Xander"], dob: date("2019-09-24")})
 MERGE (alan:Character {name: "Alan Franks", aliases: ["Alan"]})
 MERGE (alice:Character {name: "Alice Aldridge", aliases: ["Alice"], dob: date("1988-09-29")})
 MERGE (alistair:Character {name: "Alistair Lloyd", aliases: ["Alistair", "Alastair"], dob: date("1962-09-14")})

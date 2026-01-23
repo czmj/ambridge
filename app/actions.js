@@ -41,13 +41,16 @@ export async function getCharacterTimeline(slug, page = 1, pageSize = 10) {
       WHERE other <> c
 
       // 5. Group by episode and collect scenes
-      WITH e, totalCount, s, collect(DISTINCT other.name) AS others
+      WITH e, totalCount, s, collect(DISTINCT {
+        name: other.name,
+        slug: other.slug
+      }) AS others
       ORDER BY e.date DESC, s.id ASC 
 
       WITH e, totalCount, collect({
         sceneId: s.id,
         text: s.text,
-        others: others
+        characters: others
       }) AS scenes
       
       // 6. Return paginated results
@@ -75,6 +78,61 @@ export async function getCharacterTimeline(slug, page = 1, pageSize = 10) {
     const totalCount = result.records[0].get('totalCount').toNumber();
 
     return { episodes, totalCount };
+  } finally {
+    await session.close();
+  }
+}
+
+export async function getMasterTimeline(page = 1, pageSize = 10) {
+  const session = driver.session();
+  const skip = (page - 1) * pageSize;
+  
+  try {
+    const result = await session.run(`
+      // 1. Get total episode count for pagination
+      MATCH (e:Episode)
+      WITH count(e) AS totalCount
+
+      // 2. Fetch episodes with their scenes and characters
+      MATCH (e:Episode)
+      MATCH (s:Scene)-[:PART_OF]->(e)
+      MATCH (c:Character)-[:APPEARS_IN]->(s)
+
+      WITH e, totalCount, s, collect({
+        name: c.name,
+        slug: c.slug
+      }) AS characters
+      ORDER BY e.date DESC, s.id ASC
+
+      // 3. Group scenes by episode
+      WITH e, totalCount, collect({
+        sceneId: s.id,
+        text: s.text,
+        characters: characters
+      }) AS scenes
+      
+      RETURN e.pid AS episodePid,
+             e.date AS date,
+             scenes,
+             totalCount
+      ORDER BY e.date DESC
+      SKIP $skip LIMIT $limit
+    `, { 
+      skip: neo4j.int(skip), 
+      limit: neo4j.int(pageSize) 
+    });
+
+    const episodes = result.records.map(rec => ({
+      episodePid: rec.get('episodePid'),
+      date: rec.get('date').toString(),
+      scenes: rec.get('scenes'),
+      totalCount: rec.get('totalCount').toNumber()
+    }));
+
+    return { 
+      episodes, 
+      totalCount: episodes[0]?.totalCount || 0 
+    };
   } finally {
     await session.close();
   }
