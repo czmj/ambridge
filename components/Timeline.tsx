@@ -1,14 +1,26 @@
+import { formatDate } from '@/lib/utils';
+import { ExternalLink, MoveLeft, MoveRight } from 'lucide-react';
 import Link from 'next/link';
 import CharacterList from './CharacterList';
-import { formatDate } from '@/lib/utils';
+import SortOrder from './SortOrder';
+import { Subtitle } from './Typography';
 
-export default function Timeline({ episodes, totalCount, currentPage, baseUrl, pageSize, sort = 'desc' }) {
+type TimelineProps = {
+  episodes: any[], // TODO
+  totalCount: number,
+  currentPage: number,
+  baseUrl: string,
+  pageSize: number,
+  sort: 'asc'|'desc'
+}
+
+export default function Timeline({ episodes, totalCount, currentPage, baseUrl, pageSize, sort }: TimelineProps) {
   const totalPages = Math.ceil(totalCount / pageSize);
-  const today = new Date();
+  const today = new Date().getTime();
   const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
 
-  const isAvailableToListen = (episodeDate) => {
-    const epDate = new Date(`${episodeDate} 19:15`);
+  const isAvailableToListen = (episodeDate: string) => {
+    const epDate = new Date(`${episodeDate} 19:15`).getTime();
     return today - epDate <= thirtyDaysInMs;
   };
 
@@ -16,24 +28,10 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
     <div>
       {!!episodes.length && (
         <>
-          <div className="mb-3 flex gap-3 text-sm text-gray-500">
-            <Link
-              href={`${baseUrl}?sort=desc`}
-              className={`hover:text-blue-600 ${sort === 'desc' ? 'font-bold text-blue-600' : ''}`}
-            >
-              Newest First
-            </Link>
-            |
-            <Link
-              href={`${baseUrl}?sort=asc`}
-              className={`hover:text-blue-600 ${sort === 'asc' ? 'font-bold text-blue-600' : ''}`}
-            >
-              Oldest First
-            </Link>
-          </div>
+          <SortOrder baseUrl={baseUrl} currentSort={sort} />
           <div className="space-y-16 border-l-4 border-blue-500 ml-3">
             {episodes.map((ep) => (
-              <div key={ep.episodePid} className="
+              <div key={ep.pid} className="
                 pl-8
                 relative 
                 before:content-[''] 
@@ -59,22 +57,22 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
                     })}
                   </h2>
                   {isAvailableToListen(ep.date) && (
-                    <div>
+                    <p>
                       <a
-                        href={`https://www.bbc.co.uk/programmes/${ep.episodePid}`}
+                        href={`https://www.bbc.co.uk/programmes/${ep.pid}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline text-sm font-medium"
+                        className="hover:text-blue-600 text-gray-500 text-sm inline-flex gap-1 items-center"
                       >
-                        Listen again on BBC Sounds
+                        Listen again on BBC Sounds <ExternalLink size={14} aria-label="(Opens in new tab)" />
                       </a>
-                    </div>)}
+                    </p>)}
                 </header>
 
                 <div className="space-y-6">
                   {ep.scenes.map((scene) => (
                     <div key={scene.sceneId}>
-                      <div className="scene-text text-gray-900 leading-relaxed">
+                      <div className="text-gray-900 leading-relaxed">
                         {scene.text}
                       </div>
 
@@ -93,21 +91,21 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
         </>
       )}
 
-      <div className="mt-20 py-10 border-t border-gray-200 flex justify-between items-center text-sm tracking-widest uppercase">
+      <Subtitle className="mt-20 py-10 border-t border-gray-200 flex justify-between items-center" as='div'>
         {currentPage > 1 ? (
-          <Link href={`${baseUrl}?page=${currentPage - 1}&sort=${sort}`} className="hover:underline">
-            ← {sort === 'desc' ? 'Newer' : 'Older'}
+          <Link href={`${baseUrl}?page=${currentPage - 1}&sort=${sort}`} className="hover:text-blue-600 text-gray-900 transition-colors flex items-center gap-1">
+            <MoveLeft size={12} /> {sort === 'desc' ? 'Newer' : 'Older'}
           </Link>
         ) : <div />}
 
-        {totalPages ? (<span className="text-gray-400">Page {currentPage} / {totalPages}</span>) : <p>No appearances</p>}
+        {totalPages ? (<span>Page {currentPage} / {totalPages}</span>) : <p>No appearances</p>}
 
         {totalPages && currentPage < totalPages ? (
-          <Link href={`${baseUrl}?page=${currentPage + 1}&sort=${sort}`} className="hover:underline">
-            {sort === 'desc' ? 'Older' : 'Newer'} →
+          <Link href={`${baseUrl}?page=${currentPage + 1}&sort=${sort}`} className="hover:text-blue-600 text-gray-900 transition-colors flex items-center gap-1">
+            {sort === 'desc' ? 'Older' : 'Newer'} <MoveRight size={12} />
           </Link>
         ) : <div />}
-      </div>
+      </Subtitle>
     </div>
   );
 }

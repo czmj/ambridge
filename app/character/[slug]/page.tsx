@@ -1,13 +1,24 @@
+import Timeline from '@/components/Timeline';
+import { Subtitle } from '@/components/Typography';
 import { formatDate } from '../../../lib/utils';
 import { getCharacterProfile, getTimeline } from '../../actions';
-import Timeline from '@/components/Timeline';
 
-export default async function CharacterProfile({ params, searchParams }) {
+type CharacterPageProps = {
+  params: {
+    slug: string
+  },
+  searchParams: {
+    sort?: string
+    page?: string
+  }
+}
+
+export default async function CharacterPage({ params, searchParams }: CharacterPageProps) {
   const resolvedParams = await params;
   const resolvedSearch = await searchParams;
   const slug = resolvedParams.slug;
   const sort = resolvedSearch.sort;
-  const currentPage = parseInt(resolvedSearch.page) || 1;
+  const currentPage = resolvedSearch.page ? parseInt(resolvedSearch.page) : 1;
   const pageSize = 10;
 
   const profile = await getCharacterProfile(slug);
@@ -18,23 +29,23 @@ export default async function CharacterProfile({ params, searchParams }) {
   const { details } = profile;
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <header className="my-8 border-b border-gray-200 pb-2">
+    <>
+      <header className="my-12 border-b border-gray-200 pb-2">
         <h1 className="text-4xl mb-2">What happened with <span className="font-bold">{details.name}</span>?</h1>
-        <p className="text-gray-400 text-sm tracking-widest uppercase">
-          {details.dob ? `Born: ${formatDate(details.dob)}` : 'Date of Birth Unknown'} 
+        <Subtitle>
+          {details.dob ? `Born: ${formatDate(details.dob)}` : 'Date of Birth Unknown'}
           {details.dod ? ` - Died: ${formatDate(details.dod)}` : ''}
-        </p>
+        </Subtitle>
       </header>
-      
-      <Timeline 
-        episodes={episodes} 
-        totalCount={totalCount} 
+
+      <Timeline
+        episodes={episodes}
+        totalCount={totalCount}
         currentPage={currentPage}
         baseUrl={`/character/${slug}`}
         pageSize={pageSize}
         sort={sort}
       />
-    </div>
+    </>
   );
 }

@@ -1,8 +1,8 @@
 'use server'
-import neo4j from 'neo4j-driver';
 import driver from '@/lib/neo4j';
+import neo4j from 'neo4j-driver';
 
-export async function getCharacterProfile(slug) {
+export async function getCharacterProfile(slug: string) {
   const session = driver.session();
   try {
     const result = await session.run(`
@@ -12,7 +12,7 @@ export async function getCharacterProfile(slug) {
 
     if (result.records.length === 0) return null;
     const record = result.records[0];
-    
+
     return {
       details: record.get('c').properties,
     };
@@ -25,7 +25,7 @@ export async function getTimeline(page = 1, pageSize = 10, order = 'DESC', slug 
   const session = driver.session();
   const skip = (page - 1) * pageSize;
   const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-  
+
   try {
     const cypher = `
       MATCH (e:Episode)
@@ -51,7 +51,7 @@ export async function getTimeline(page = 1, pageSize = 10, order = 'DESC', slug 
         characters: characters
       }) AS scenes
       
-      RETURN e.pid AS episodePid,
+      RETURN e.pid AS pid,
              e.date AS date,
              scenes,
              totalCount
@@ -59,16 +59,16 @@ export async function getTimeline(page = 1, pageSize = 10, order = 'DESC', slug 
       SKIP $skip LIMIT $limit
     `;
 
-    const result = await session.run(cypher, { 
-      slug, 
-      skip: neo4j.int(skip), 
-      limit: neo4j.int(pageSize) 
+    const result = await session.run(cypher, {
+      slug,
+      skip: neo4j.int(skip),
+      limit: neo4j.int(pageSize)
     });
 
     if (result.records.length === 0) return { episodes: [], totalCount: 0 };
 
     const episodes = result.records.map(rec => ({
-      episodePid: rec.get('episodePid'),
+      pid: rec.get('pid'),
       date: rec.get('date').toString(),
       scenes: rec.get('scenes')
     }));
