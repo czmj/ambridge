@@ -6,11 +6,12 @@ export default async function CharacterProfile({ params, searchParams }) {
   const resolvedParams = await params;
   const resolvedSearch = await searchParams;
   const slug = resolvedParams.slug;
+  const sort = resolvedSearch.sort;
   const currentPage = parseInt(resolvedSearch.page) || 1;
   const pageSize = 10;
 
   const profile = await getCharacterProfile(slug);
-  const { episodes, totalCount } = await getTimeline(currentPage, pageSize, slug);
+  const { episodes, totalCount } = await getTimeline(currentPage, pageSize, sort, slug);
 
   if (!profile) return <div>Character not found</div>;
 
@@ -18,10 +19,10 @@ export default async function CharacterProfile({ params, searchParams }) {
 
   return (
     <div className="max-w-5xl mx-auto p-6">
-      <header className="my-12 border-b border-gray-200 pb-2">
+      <header className="my-8 border-b border-gray-200 pb-2">
         <h1 className="text-4xl mb-2">What happened with <span className="font-bold">{details.name}</span>?</h1>
         <p className="text-gray-400 text-sm tracking-widest uppercase">
-          {details.dob ? `Born: ${formatDate(details.dob)}` : 'DOB Unknown'} 
+          {details.dob ? `Born: ${formatDate(details.dob)}` : 'Date of Birth Unknown'} 
           {details.dod ? ` - Died: ${formatDate(details.dod)}` : ''}
         </p>
       </header>
@@ -32,6 +33,7 @@ export default async function CharacterProfile({ params, searchParams }) {
         currentPage={currentPage}
         baseUrl={`/character/${slug}`}
         pageSize={pageSize}
+        sort={sort}
       />
     </div>
   );

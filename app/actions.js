@@ -21,9 +21,10 @@ export async function getCharacterProfile(slug) {
   }
 }
 
-export async function getTimeline(page = 1, pageSize = 10, slug = null) {
+export async function getTimeline(page = 1, pageSize = 10, order = 'DESC', slug = null) {
   const session = driver.session();
   const skip = (page - 1) * pageSize;
+  const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
   
   try {
     const cypher = `
@@ -42,7 +43,7 @@ export async function getTimeline(page = 1, pageSize = 10, slug = null) {
         name: other.name,
         slug: other.slug
       }) WHERE x.slug IS NOT NULL] AS characters
-      ORDER BY e.date DESC, s.id ASC
+      ORDER BY e.date ${sortOrder}, s.id ASC
 
       WITH e, totalCount, collect({
         sceneId: s.id,
@@ -54,7 +55,7 @@ export async function getTimeline(page = 1, pageSize = 10, slug = null) {
              e.date AS date,
              scenes,
              totalCount
-      ORDER BY e.date DESC
+      ORDER BY e.date ${sortOrder}
       SKIP $skip LIMIT $limit
     `;
 
