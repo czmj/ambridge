@@ -4,13 +4,20 @@ import { formatDate } from '@/lib/utils';
 
 export default function Timeline({ episodes, totalCount, currentPage, baseUrl, pageSize }) {
   const totalPages = Math.ceil(totalCount / pageSize);
+  const today = new Date();
+  const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+
+  const isAvailableToListen = (episodeDate) => {
+    const epDate = new Date(`${episodeDate} 19:15`);
+    return today - epDate <= thirtyDaysInMs;
+  };
 
   return (
     <div className="mt-8 pl-3">
       {!!episodes.length && (
         <div className="space-y-16 border-l-4 border-blue-500">
           {episodes.map((ep) => (
-              <div key={ep.episodePid} className="
+            <div key={ep.episodePid} className="
                 pl-8
                 relative 
                 before:content-[''] 
@@ -26,7 +33,8 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
                 before:-left-4.5 
                 before:bg-white
               ">
-                <h2 className="text-2xl font-bold mb-4">
+              <header className="mb-4">
+                <h2 className="text-2xl font-bold">
                   {formatDate(ep.date, {
                     weekday: "long",
                     day: 'numeric',
@@ -34,24 +42,36 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
                     year: 'numeric',
                   })}
                 </h2>
+                {isAvailableToListen(ep.date) && (
+                <div>
+                  <a
+                    href={`https://www.bbc.co.uk/programmes/${ep.episodePid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm font-medium"
+                  >
+                    Listen again on BBC Sounds
+                  </a>
+                </div>)}
+              </header>
 
-                <div className="space-y-6">
-                  {ep.scenes.map((scene) => (
-                    <div key={scene.sceneId}>
-                      <div className="scene-text text-gray-900 leading-relaxed">
-                        {scene.text}
-                      </div>
-
-                      {scene.characters?.length > 0 && (
-                        <div className="mt-4">
-                          <CharacterList characters={scene.characters} />
-                        </div>
-                      )}
+              <div className="space-y-6">
+                {ep.scenes.map((scene) => (
+                  <div key={scene.sceneId}>
+                    <div className="scene-text text-gray-900 leading-relaxed">
+                      {scene.text}
                     </div>
-                  ))}
-                </div>
+
+                    {scene.characters?.length > 0 && (
+                      <div className="mt-4">
+                        <CharacterList characters={scene.characters} />
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            )
+            </div>
+          )
           )}
         </div>
       )}
