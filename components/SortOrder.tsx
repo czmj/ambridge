@@ -11,7 +11,7 @@ export default function SortOrder({ baseUrl, currentSort = 'desc' }: {
 
   return (
     <nav
-      className="mb-4 flex gap-3 text-sm text-gray-500"
+      className="mb-4 flex gap-3 text-sm text-gray-600"
       aria-label="Sort order"
     >
       {options.map((option, index) => (
@@ -33,7 +33,7 @@ export default function SortOrder({ baseUrl, currentSort = 'desc' }: {
           )}
 
           {index < options.length - 1 && (
-            <span aria-hidden="true" className="text-gray-300">|</span>
+            <span aria-hidden="true" className="text-gray-400">|</span>
           )}
         </span>
       ))}

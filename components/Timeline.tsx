@@ -1,8 +1,8 @@
 import { formatDate } from '@/lib/utils';
 import { MoveLeft, MoveRight } from 'lucide-react';
 import Link from 'next/link';
-import CharacterList from './CharacterList';
 import ListenAgain from './ListenAgain';
+import ScenesList from './ScenesList';
 import SortOrder from './SortOrder';
 import { Subtitle } from './Typography';
 
@@ -52,7 +52,7 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
                       year: 'numeric',
                     })}
                   </h2>
-                  <p className="text-gray-500 text-sm inline-flex gap-2">
+                  <p className="text-gray-600 text-sm inline-flex gap-2">
                     <Link
                       href={`/on/${ep.date}`}
                       className="hover:text-blue-600 transition-colors"
@@ -66,21 +66,7 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
                   </p>
                 </header>
 
-                <div className="space-y-6">
-                  {ep.scenes.map((scene) => (
-                    <div key={scene.sceneId}>
-                      <div className="text-gray-900 leading-relaxed">
-                        {scene.text}
-                      </div>
-
-                      {scene.characters?.length > 0 && (
-                        <div className="mt-4">
-                          <CharacterList characters={scene.characters} />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <ScenesList scenes={ep.scenes} />
               </div>
             ))}
           </div>
@@ -94,7 +80,7 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
       {hasMultiplePages && (
         <Subtitle className="mt-12 py-10 border-t border-gray-200 flex justify-between items-center" as='div'>
           {currentPage > 1 ? (
-            <Link href={`${baseUrl}?page=${Math.min(currentPage,totalPages) - 1}&sort=${sort}`} className="hover:text-blue-600 text-gray-900 transition-colors flex items-center gap-1">
+            <Link href={`${baseUrl}?page=${Math.min(currentPage, totalPages) - 1}&sort=${sort}`} className="hover:text-blue-600 text-gray-900 transition-colors flex items-center gap-1">
               <MoveLeft size={12} /> {sort === 'desc' ? 'Newer' : 'Older'}
             </Link>
           ) : <div />}

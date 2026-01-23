@@ -1,4 +1,6 @@
-import { Subtitle } from '@/components/Typography';
+import { getEpisodeByDate } from '@/app/actions';
+import ScenesList from '@/components/ScenesList';
+import { notFound } from 'next/navigation';
 import { formatDate } from '../../../lib/utils';
 
 type DatePageProps = {
@@ -11,21 +13,22 @@ type DatePageProps = {
   }
 }
 
-export default async function DatePage({ params, searchParams }: DatePageProps) {
+export default async function DatePage({ params }: DatePageProps) {
   const resolvedParams = await params;
-  const resolvedSearch = await searchParams;
   const date = resolvedParams.date;
-  const page = resolvedSearch.page ? parseInt(resolvedSearch.page) : 1;
-  const pageSize = 10;
+  const episode = await getEpisodeByDate(date);
+  
+  if (!episode) {
+    notFound();
+  }
 
   return (
     <>
       <header className="my-12 border-b border-gray-200 pb-2">
         <h1 className="text-4xl mb-2">What happened on <span className="font-bold">{formatDate(date)}</span>?</h1>
-        <Subtitle>
-          Some text here...
-        </Subtitle>
+        <p className="italic text-sm text-gray-600">{episode.synopsis}</p>
       </header>
+      <ScenesList scenes={episode.scenes}/>
     </>
   );
 }
