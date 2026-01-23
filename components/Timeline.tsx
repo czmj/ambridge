@@ -17,13 +17,6 @@ type TimelineProps = {
 
 export default function Timeline({ episodes, totalCount, currentPage, baseUrl, pageSize, sort = 'desc' }: TimelineProps) {
   const totalPages = Math.ceil(totalCount / pageSize);
-  const today = new Date().getTime();
-  const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
-
-  const isAvailableToListen = (episodeDate: string) => {
-    const epDate = new Date(`${episodeDate} 19:15`).getTime();
-    return today - epDate <= thirtyDaysInMs;
-  };
 
   return (
     <div>
@@ -64,13 +57,11 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
                     >
                       View episode
                     </Link>
-                    {isAvailableToListen(ep.date) && (
-                      <>
-                        <span aria-hidden="true" className="text-gray-300">|</span>
-                        <span>
-                          <ListenAgain pid={ep.pid} />
-                        </span>
-                      </>)}
+                    <span aria-hidden="true" className="text-gray-300">|</span>
+                    <span>
+                      <ListenAgain pid={ep.pid} date={ep.date} />
+                    </span>
+
                   </p>
                 </header>
 
