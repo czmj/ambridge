@@ -4,7 +4,6 @@ import Link from 'next/link';
 import ListenAgain from './ListenAgain';
 import ScenesList from './ScenesList';
 import SortOrder from './SortOrder';
-import { Subtitle } from './Typography';
 
 type TimelineProps = {
   episodes: any[], // TODO
@@ -78,7 +77,7 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
       )}
 
       {hasMultiplePages && (
-        <Subtitle className="mt-12 py-10 border-t border-gray-200 flex justify-between items-center" as='div'>
+        <div className="mt-12 py-10 border-t border-gray-200 flex justify-between items-center text-sm text-gray-600 tracking-widest uppercase">
           {currentPage > 1 ? (
             <Link href={`${baseUrl}?page=${Math.min(currentPage, totalPages) - 1}&sort=${sort}`} className="hover:text-blue-600 text-gray-900 transition-colors flex items-center gap-1">
               <MoveLeft size={12} /> {sort === 'desc' ? 'Newer' : 'Older'}
@@ -92,7 +91,7 @@ export default function Timeline({ episodes, totalCount, currentPage, baseUrl, p
               {sort === 'desc' ? 'Older' : 'Newer'} <MoveRight size={12} />
             </Link>
           ) : <div />}
-        </Subtitle>
+        </div>
       )}
     </div>
   );

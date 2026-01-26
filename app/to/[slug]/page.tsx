@@ -33,7 +33,7 @@ export default async function CharacterPage({ params, searchParams }: CharacterP
 
   return (
     <>
-      <header className="my-12 border-b border-gray-200 pb-2">
+      <header className="mt-12 mb-6 border-b border-gray-200 pb-2">
         <h1 className="text-4xl mb-2">What happened to <span className="font-bold">{name}</span>?</h1>
         <Subtitle>
           {dob ? `Born: ${formatDate(dob)}` : 'Date of Birth Unknown'}

@@ -388,7 +388,7 @@ class ArchersDatabase:
             // Resolution Logic
             WHERE s.text CONTAINS c.name
                OR active_conflicts = 0
-               OR (total_others > 0 AND (toFloat(family_present) / total_others) >= 0.5)
+               OR (total_others > 0 AND (toFloat(family_present) / total_others) >= 0.5) // TODO: Weight score more towards spouses and children than grandchildren, and pick the highest weighted option
 
             MERGE (c)-[:APPEARS_IN]->(s)
             RETURN count(s) as matches

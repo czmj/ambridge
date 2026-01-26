@@ -19,7 +19,7 @@ export default async function Home({ searchParams }: HomePageProps) {
 
   return (
     <>
-      <header className="my-12 border-b border-gray-200 pb-2">
+      <header className="mt-12 mb-6 border-b border-gray-200 pb-2">
         <h1 className="text-4xl mb-2">What happened in Ambridge?</h1>
         <Subtitle>
           A chronological history
