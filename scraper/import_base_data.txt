@@ -94,7 +94,7 @@ MERGE (miles:Character {name: "Miles Titchener", aliases: ["Miles"], gender: "Ma
 MERGE (miranda:Character {name: "Miranda Elliott", aliases: ["Miranda"], gender: "Female"})
 MERGE (natasha:Character {name: "Natasha Archer", aliases: ["Natasha"], dob: date("1982-03-08"), gender: "Female"})
 MERGE (neil:Character {name: "Neil Carter", aliases: ["Neil"], dob: date("1957-05-22"), gender: "Male"})
-MERGE (neville:Character {name: "Neville Booth", aliases: ["Neville"], gender: "Male"})
+MERGE (neville:Character {name: "Neville Booth", aliases: ["Neville", "Mr Booth"], gender: "Male"})
 MERGE (nic:Character {name: "Nic Grundy", aliases: ["Nic"], dod: date("2018-02-01"), gender: "Female"})
 MERGE (nigel:Character {name: "Nigel Pargetter", aliases: ["Nigel"], dob: date("1959-06-08"), dod: date("2011-01-02"), gender: "Male"})
 MERGE (oliver:Character {name: "Oliver Sterling", aliases: ["Oliver"], gender: "Male"})
@@ -311,7 +311,6 @@ MERGE (justinBamford)-[:ROMANTIC_RELATIONSHIP {status: "current"}]->(coriander);
 
 // Friendships and non-familial connections
 MERGE (joe)-[:FRIEND_OF {notes: "Friendly rivalry"}]->(bert);
-MERGE (neville)-[:FRIEND_OF {notes: "Drinking rivals at The Bull"}]->(bertH);
 
 MATCH (a:Character)-[r:SPOUSE]->(b:Character)
 WHERE NOT (b)-[:SPOUSE]->(a)
