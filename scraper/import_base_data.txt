@@ -16,11 +16,12 @@ MERGE (amber:Character {name: "Amber Gordon", aliases: ["Amber"], gender: "Femal
 MERGE (amy:Character {name: "Amy Franks", aliases: ["Amy"], gender: "Female"})
 MERGE (azra:Character {name: "Azra Malik", aliases: ["Azra", "Dr Malik"], gender: "Female"})
 MERGE (ben:Character {name: "Ben Archer", aliases: ["Ben"], dob: date("2002-03-15"), gender: "Male"})
-MERGE (bert:Character {name: "Bert Fry", aliases: ["Bert"], dob: date("1936-06-07"), dod: date("2021-10-25"), gender: "Male"})
+MERGE (bert:Character {name: "Bert Fry", aliases: ["Bert"], dob: date("1936-06-07"), dod: date("2021-10-25"), gender: "Male", keywords: ["tractor", "allotment", "poem", "poetry", "Flower & Produce", "veg"]})
 MERGE (freda:Character {name: "Freda Fry", aliases: ["Freda"], dod: date("2015-03-13"), gender: "Female"})
 MERGE (bertH:Character {name: "Bert Horrobin", aliases: ["Bert"], first_appearance: date("2011-10-31"), gender: "Male"})
 MERGE (brad:Character {name: "Brad Horrobin", aliases: ["Brad"], gender: "Male"})
 MERGE (brian:Character {name: "Brian Aldridge", aliases: ["Brian"], dob: date("1943-11-20"), gender: "Male"})
+MERGE (bruce:Character {name: "Bruce Titchener", aliases: ["Bruce"], gender: "Male"})
 MERGE (carly:Character {name: "Carly", aliases: ["Carly"], gender: "Female"})
 MERGE (caroline:Character {name: "Caroline Sterling", aliases: ["Caroline"], dob: date("1955-06-03"), dod: date("2018-10-01"), gender: "Female"})
 MERGE (chelsea:Character {name: "Chelsea Horrobin", aliases: ["Chelsea"], gender: "Female"})
@@ -50,8 +51,8 @@ MERGE (henry:Character {name: "Henry Archer", aliases: ["Henry"], dob: date("201
 MERGE (ian:Character {name: "Ian Craig", aliases: ["Ian"], gender: "Male"})
 MERGE (ivy:Character {name: "Ivy Horrobin", aliases: ["Ivy"], dod: date("2011-11-01"), gender: "Female"})
 MERGE (jackASr:Character {name: "Jack Archer (Sr.)", aliases: ["Jack"], dob: date("1922-12-17"), dod: date("1972-01-11"), gender: "Male"})
-MERGE (jackA:Character {name: "Jack Archer", aliases: ["Jack"], dob: date("2016-05-21"), gender: "Male"})
-MERGE (jackW:Character {name: "Jack Woolley", aliases: ["Jack"], dob: date("1919-07-19"), dod: date("2014-01-02"), gender: "Male"})
+MERGE (jackA:Character {name: "Jack Archer", aliases: ["Jack", "Gideon"], dob: date("2016-05-21"), gender: "Male", keywords: ["custody", "access"]})
+MERGE (jackW:Character {name: "Jack Woolley", aliases: ["Jack"], dob: date("1919-07-19"), dod: date("2014-01-02"), gender: "Male", keywords: ["Grey Gables", "Laurels", "dementia"]})
 MERGE (jakob:Character {name: "Jakob Hakansson", aliases: ["Jakob"], gender: "Male"})
 MERGE (james:Character {name: "James Bellamy", aliases: ["James"], dob: date("1973-03-30"), gender: "Male"})
 MERGE (jazzer:Character {name: "Jazzer McCreary", aliases: ["Jazzer"], gender: "Male"})
@@ -64,7 +65,7 @@ MERGE (johnny:Character {name: "Johnny Phillips", aliases: ["Johnny", "Rich"], d
 MERGE (jolene:Character {name: "Jolene Archer", aliases: ["Jolene"], gender: "Female"})
 MERGE (josh:Character {name: "Josh Archer", aliases: ["Josh"], dob: date("1997-09-13"), gender: "Male"})
 MERGE (joy:Character {name: "Joy Horville", aliases: ["Joy"], gender: "Female"})
-MERGE (justinElliott:Character {name: "Justin Elliott", aliases: ["Justin", "Justin Elliot"], first_appearance: date("2014-04-09"), gender: "Male"})
+MERGE (justinElliott:Character {name: "Justin Elliott", aliases: ["Justin", "Justin Elliot"], first_appearance: date("2014-04-09"), gender: "Male", keywords: ["BL", "Borchester Land", "rewilding", "Board"]})
 MERGE (justinBamford:Character {name: "Justin Bamford", aliases: ["Justin"], last_appearance: date("2010-12-30"), gender: "Male"})
 MERGE (kate:Character {name: "Kate Madikane", aliases: ["Kate"], dob: date("1977-09-30"), gender: "Female"})
 MERGE (keith:Character {name: "Keith Horrobin", aliases: ["Keith"], dob: date("1964-12-01"), gender: "Male"})
@@ -72,6 +73,7 @@ MERGE (keira:Character {name: "Keira Grundy", aliases: ["Keira"], dob: date("201
 MERGE (kenton:Character {name: "Kenton Archer", aliases: ["Kenton"], dob: date("1958-08-08"), gender: "Male"})
 MERGE (khalil:Character {name: "Khalil Malik", aliases: ["Khalil"], gender: "Male"})
 MERGE (kirsty:Character {name: "Kirsty Miller", aliases: ["Kirsty"], dob: date("1981-05-05"), gender: "Female"})
+MERGE (kylie:Character {name: "Kylie Richards", aliases: ["Kylie"], gender: "Female"})
 MERGE (lawrence:Character {name: "Lawrence Harrington", aliases: ["Lawrence"], gender: "Male"})
 MERGE (lee:Character {name: "Lee Bryce", aliases: ["Lee"], gender: "Male"})
 MERGE (leonie:Character {name: "Leonie Snell", aliases: ["Leonie"], gender: "Female"})
@@ -88,12 +90,15 @@ MERGE (martyn:Character {name: "Martyn Gibson", aliases: ["Martyn"], gender: "Ma
 MERGE (mia:Character {name: "Mia Grundy", aliases: ["Mia"], dob: date("2004-12-01"), gender: "Female"})
 MERGE (mick:Character {name: "Mick Fadmoor", aliases: ["Mick"], gender: "Male"})
 MERGE (mike:Character {name: "Mike Tucker", aliases: ["Mike"], dob: date("1949-12-01"), gender: "Male"})
+MERGE (miles:Character {name: "Miles Titchener", aliases: ["Miles"], gender: "Male"})
 MERGE (miranda:Character {name: "Miranda Elliott", aliases: ["Miranda"], gender: "Female"})
 MERGE (natasha:Character {name: "Natasha Archer", aliases: ["Natasha"], dob: date("1982-03-08"), gender: "Female"})
 MERGE (neil:Character {name: "Neil Carter", aliases: ["Neil"], dob: date("1957-05-22"), gender: "Male"})
+MERGE (neville:Character {name: "Neville Booth", aliases: ["Neville"], gender: "Male"})
 MERGE (nic:Character {name: "Nic Grundy", aliases: ["Nic"], dod: date("2018-02-01"), gender: "Female"})
 MERGE (nigel:Character {name: "Nigel Pargetter", aliases: ["Nigel"], dob: date("1959-06-08"), dod: date("2011-01-02"), gender: "Male"})
 MERGE (oliver:Character {name: "Oliver Sterling", aliases: ["Oliver"], gender: "Male"})
+MERGE (oscar:Character {name: "Oscar Bamford", aliases: ["Oscar"], gender: "Male"})
 MERGE (pat:Character {name: "Pat Archer", aliases: ["Pat"], dob: date("1952-01-10"), gender: "Female"})
 MERGE (paul:Character {name: "Paul Mack", aliases: ["Paul"], gender: "Male"})
 MERGE (peggy:Character {name: "Peggy Woolley", aliases: ["Peggy"], dob: date("1924-11-13"), dod: date("2025-05-08"), gender: "Female"})
@@ -112,11 +117,13 @@ MERGE (sharon:Character {name: "Sharon Richards", aliases: ["Sharon"], dob: date
 MERGE (shula:Character {name: "Shula Hebden Lloyd", aliases: ["Shula"], dob: date("1958-08-08"), gender: "Female"})
 MERGE (siobhan:Character {name: "Siobhan Hathaway", aliases: ["Siobhan"], dod: date("2007-05-31"), gender: "Female"})
 MERGE (stella:Character {name: "Stella Pryor", aliases: ["Stella"], gender: "Female"})
+MERGE (stewart:Character {name: "Stewart Horrobin", aliases: ["Stewart"], gender: "Male"})
 MERGE (susan:Character {name: "Susan Carter", aliases: ["Susan"], dob: date("1963-10-10"), gender: "Female"})
 MERGE (toby:Character {name: "Toby Fairbrother", aliases: ["Toby"], gender: "Male"})
 MERGE (tom:Character {name: "Tom Archer", aliases: ["Tom", "Tommy"], dob: date("1981-02-25"), gender: "Male"})
 MERGE (tony:Character {name: "Tony Archer", aliases: ["Tony"], dob: date("1951-02-16"), gender: "Male"})
 MERGE (tracy:Character {name: "Tracy Horrobin", aliases: ["Tracy"], dob: date("1975-07-16"), gender: "Female"})
+MERGE (ursula:Character {name: "Ursula Titchener", aliases: ["Ursula"], gender: "Female"})
 MERGE (usha:Character {name: "Usha Franks", aliases: ["Usha"], dob: date("1962-06-17"), gender: "Female"})
 MERGE (vince:Character {name: "Vince Casey", aliases: ["Vince"], gender: "Male"})
 MERGE (will:Character {name: "Will Grundy", aliases: ["Will"], dob: date("1983-02-09"), gender: "Male"})
@@ -124,6 +131,7 @@ MERGE (zainab:Character {name: "Zainab Malik", aliases: ["Zainab"], gender: "Fem
 MERGE (roy:Character {name: "Roy Tucker", aliases: ["Roy"], dob: date("1978-02-02"), gender: "Male"})
 MERGE (hayley:Character {name: "Hayley Tucker", aliases: ["Hayley"], gender: "Female"})
 MERGE (philip:Character {name: "Philip Moss", aliases: ["Phillip", "Philip"], gender: "Male"})
+MERGE (garyH:Character {name: "Gary Horrobin", aliases: ["Gary"], gender: "Male"})
 MERGE (gavin:Character {name: "Gavin Moss", aliases: ["Gavin"], gender: "Male"})
 MERGE (blake:Character {name: "Blake Goddard", aliases: ["Blake"], gender: "Male"})
 MERGE (darrell:Character {name: "Darrell Makepeace", aliases: ["Darrell"], gender: "Male"})
@@ -236,6 +244,10 @@ MERGE (chris)-[:CHILD_OF]->(susan)
 MERGE (martha)-[:CHILD_OF]->(chris)
 MERGE (martha)-[:CHILD_OF]->(alice)
 
+MERGE (garyH)-[:CHILD_OF]->(bertH)
+MERGE (stewart)-[:CHILD_OF]->(bertH)
+MERGE (kylie)-[:CHILD_OF]->(clive)
+MERGE (kylie)-[:CHILD_OF]->(sharon)
 MERGE (brad)-[:CHILD_OF]->(tracy)
 MERGE (chelsea)-[:CHILD_OF]->(tracy)
 
@@ -254,6 +266,12 @@ MERGE (amy)-[:CHILD_OF]->(alan)
 MERGE (amy)-[:CHILD_OF]->(usha)
 MERGE (leonie)-[:CHILD_OF]->(robert)
 MERGE (coriander)-[:CHILD_OF]->(robert)
+MERGE (oscar)-[:CHILD_OF]->(justinBamford)
+MERGE (oscar)-[:CHILD_OF]->(coriander)
+MERGE (rob)-[:CHILD_OF]->(bruce)
+MERGE (rob)-[:CHILD_OF]->(ursula)
+MERGE (miles)-[:CHILD_OF]->(bruce)
+MERGE (miles)-[:CHILD_OF]->(ursula)
 MERGE (alistair)-[:CHILD_OF]->(jim)
 MERGE (jamie)-[:CHILD_OF]->(kathy)
 MERGE (annette)-[:CHILD_OF]->(greg)
@@ -289,12 +307,29 @@ MERGE (lucas)-[:SPOUSE {status: "past", notes: "Divorced"}]->(kate)
 MERGE (fallon)-[:SPOUSE {status: "current"}]->(harrison)
 MERGE (faith)-[:SPOUSE {status: "current"}]->(chuck);
 MERGE (justinElliott)-[:ROMANTIC_RELATIONSHIP {status: "current"}]->(lilian);
+MERGE (justinBamford)-[:ROMANTIC_RELATIONSHIP {status: "current"}]->(coriander);
+
+// Friendships and non-familial connections
+MERGE (joe)-[:FRIEND_OF {notes: "Friendly rivalry"}]->(bert);
+MERGE (neville)-[:FRIEND_OF {notes: "Drinking rivals at The Bull"}]->(bertH);
 
 MATCH (a:Character)-[r:SPOUSE]->(b:Character)
 WHERE NOT (b)-[:SPOUSE]->(a)
 MERGE (b)-[r2:SPOUSE]->(a)
 SET r2 = properties(r)
 RETURN count(r2) AS relationships_mirrored;
+
+MATCH (a:Character)-[r:ROMANTIC_RELATIONSHIP]->(b:Character)
+WHERE NOT (b)-[:ROMANTIC_RELATIONSHIP]->(a)
+MERGE (b)-[r2:ROMANTIC_RELATIONSHIP]->(a)
+SET r2 = properties(r)
+RETURN count(r2) AS relationships_mirrored;
+
+MATCH (a:Character)-[r:FRIEND_OF]->(b:Character)
+WHERE NOT (b)-[:FRIEND_OF]->(a)
+MERGE (b)-[r2:FRIEND_OF]->(a)
+SET r2 = properties(r)
+RETURN count(r2) AS friendships_mirrored;
 
 MERGE (:Location {name: "Brookfield"})
 MERGE (:Location {name: "Brookfield Bungalow"})
@@ -327,6 +362,7 @@ MERGE (:Location {name: "Grey Gables"})
 MERGE (:Location {name: "The Laurels"})
 MERGE (:Location {name: "Meadow Farm"})
 MERGE (:Location {name: "Rewilding Ambridge"})
+MERGE (:Location {name: "Borchester Land"})
 MERGE (:Location {name: "Stratford-upon-Avon"});
 
 // Brookfield
@@ -383,11 +419,15 @@ MATCH (c:Character {name: "Lynda Snell"}), (l:Location {name: "Ambridge Hall"}) 
 MATCH (c:Character {name: "Justin Elliott"}), (l:Location {name: "Dower House"}) MERGE (c)-[:LIVES_AT]->(l);
 MATCH (c:Character {name: "Lilian Bellamy"}), (l:Location {name: "Dower House"}) MERGE (c)-[:LIVES_AT]->(l);
 MATCH (c:Character {name: "Alice Aldridge"}), (l:Location {name: "The Nest"}) MERGE (c)-[:LIVES_AT {from: date("2022-02-01")}]->(l);
+MATCH (c:Character {name: "Jack Woolley"}), (l:Location {name: "The Laurels"}) MERGE (c)-[:LIVES_AT]->(l);
 
 // WORKS_AT
 
 MATCH (c:Character), (l:Location {name: "Rewilding Ambridge"})
 WHERE c.name IN ["Justin Elliott", "Kirsty Miller", "Rex Fairbrother"]
+MERGE (c)-[:WORKS_AT]->(l);
+
+MATCH (c:Character {name: "Justin Elliott"}), (l:Location {name: "Borchester Land"})
 MERGE (c)-[:WORKS_AT]->(l);
 
 MATCH (c:Character)

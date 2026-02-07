@@ -90,10 +90,24 @@ WITH c, '.*\\\\b(' + reduce(s = '', t IN terms |
 MATCH (s:Scene)-[:PART_OF]->(e:Episode)
 WHERE s.text =~ regex
   {pid_filter}
-  AND (c.dob IS NULL OR e.date >= c.dob)
-  AND (c.dod IS NULL OR e.date <= c.dod)
-  AND (c.first_appearance IS NULL OR e.date >= c.first_appearance)
-  AND (c.last_appearance IS NULL OR e.date <= c.last_appearance)
+
+// Check if character is temporally active (alive, within appearance range)
+// Keep inactive characters as rivals to prevent incorrect fallback
+WITH s, c, e,
+    CASE
+        WHEN (c.dob IS NOT NULL AND e.date < c.dob) THEN false
+        WHEN (c.dod IS NOT NULL AND e.date > c.dod) THEN false
+        WHEN (c.first_appearance IS NOT NULL AND e.date < c.first_appearance) THEN false
+        WHEN (c.last_appearance IS NOT NULL AND e.date > c.last_appearance) THEN false
+        ELSE true
+    END AS temporally_active
+
+// Check if character's full name appears anywhere in this episode
+WITH s, c, e, temporally_active,
+    EXISTS {{
+        MATCH (other_scene:Scene)-[:PART_OF]->(e)
+        WHERE other_scene.text CONTAINS c.name
+    }} AS full_name_in_episode
 
 // Count close family (spouse, parent, child, sibling) in scene - weight 3
 OPTIONAL MATCH (s)<-[:APPEARS_IN]-(closeRelative:Character)
@@ -102,14 +116,20 @@ WHERE (c)-[:SPOUSE|ROMANTIC_RELATIONSHIP]-(closeRelative)
    OR (closeRelative)-[:CHILD_OF]->(c)
    OR (c)-[:CHILD_OF]->(:Character)<-[:CHILD_OF]-(closeRelative)
 
-WITH s, c, e, count(DISTINCT closeRelative) AS close_family
+WITH s, c, e, temporally_active, full_name_in_episode, count(DISTINCT closeRelative) AS close_family
 
 // Count grandparents/grandchildren in scene - weight 2
 OPTIONAL MATCH (s)<-[:APPEARS_IN]-(distantRelative:Character)
 WHERE (c)-[:CHILD_OF*2]->(distantRelative)
    OR (distantRelative)-[:CHILD_OF*2]->(c)
 
-WITH s, c, e, close_family, count(DISTINCT distantRelative) AS distant_family
+WITH s, c, e, temporally_active, full_name_in_episode, close_family, count(DISTINCT distantRelative) AS distant_family
+
+// Count friends in scene - weight 1
+OPTIONAL MATCH (s)<-[:APPEARS_IN]-(friend:Character)
+WHERE (c)-[:FRIEND_OF]-(friend)
+
+WITH s, c, e, temporally_active, full_name_in_episode, close_family, distant_family, count(DISTINCT friend) AS friends
 
 // Count co-habitants/co-workers in scene - weight 2
 OPTIONAL MATCH (s)<-[:APPEARS_IN]-(cohabitant:Character)
@@ -119,31 +139,79 @@ WHERE EXISTS {{
       AND (r2.from IS NULL OR r2.from <= e.date) AND (r2.to IS NULL OR r2.to >= e.date)
 }}
 
-WITH s, c, e, close_family, distant_family,
+WITH s, c, e, temporally_active, full_name_in_episode, close_family, distant_family, friends,
     count(DISTINCT cohabitant) AS cohabitant_count
 
+// Contextual keyword scoring - count matched keywords, each worth 2 points
+WITH s, c, e, temporally_active, full_name_in_episode, close_family, distant_family, friends, cohabitant_count,
+    CASE
+        WHEN c.keywords IS NOT NULL
+        THEN reduce(score = 0, kw IN c.keywords |
+            score + CASE WHEN s.text =~ ('.*\\\\b' + kw + '\\\\b.*') THEN 2 ELSE 0 END
+        )
+        ELSE 0
+    END AS keyword_score
+
 // Score each candidate and flag definite matches
-WITH s, c, e,
-    (close_family * 3) + (cohabitant_count * 2) + distant_family AS family_score,
-    CASE WHEN s.text CONTAINS c.name OR e.date = c.dob OR e.date = c.dod
-         THEN true ELSE false END AS definite_match
+WITH s, c, e, temporally_active,
+    (close_family * 3) + (cohabitant_count * 2) + (friends * 2) + distant_family + keyword_score AS total_score,
+    CASE
+        WHEN s.text CONTAINS c.name THEN true
+        WHEN full_name_in_episode THEN true
+        WHEN e.date = c.dob OR e.date = c.dod THEN true
+        ELSE false
+    END AS definite_match
 
 // Collect all candidates per scene and pick the best match for each alias group
-WITH s, collect({{
+WITH s, e, collect({{
     character: c,
-    score: family_score,
+    score: total_score,
     definite: definite_match,
-    aliases: coalesce(c.aliases, [])
+    active: temporally_active,
+    aliases: coalesce(c.aliases, []),
+    full_name: c.name
 }}) AS candidates
 
 UNWIND candidates AS cand
-WITH s, cand, candidates, cand.character AS character
-WHERE cand.definite
-   OR NONE(rival IN candidates
-       WHERE rival.character <> character
-       AND rival.score >= cand.score
-       AND ANY(a IN rival.aliases WHERE a IN cand.aliases) // TODO: Bert Horrobin is being tagged in discussion about Bert Fry after his death, even when there are no relatives. Maybe a minimum score?
-   )
+WITH s, e, cand, candidates, cand.character AS character,
+    [rival IN candidates
+     WHERE rival.character <> cand.character
+     AND ANY(a IN rival.aliases WHERE a IN cand.aliases)] AS rivals
+
+// Check if any rival's full name appears anywhere in this episode
+WITH s, e, cand, character, candidates, rivals,
+    ANY(rival IN rivals WHERE
+        EXISTS {{
+            MATCH (other_scene:Scene)-[:PART_OF]->(e)
+            WHERE other_scene.text CONTAINS rival.full_name
+        }}
+    ) AS rival_full_name_present
+
+// Check for memorial keywords + deceased rival (exclude living candidates)
+WITH s, e, cand, character, rivals, rival_full_name_present,
+    EXISTS {{
+        MATCH (other_scene:Scene)-[:PART_OF]->(e)
+        WHERE other_scene.text =~ '.*\\\\b(death|died|funeral|memorial|footsteps|passed away|loss of|mourning)\\\\b.*'
+    }} AS has_memorial_keywords,
+    ANY(rival IN rivals WHERE
+        rival.character.dod IS NOT NULL
+    ) AS has_deceased_rival,
+    ANY(rival IN rivals WHERE
+        rival.character.dod IS NOT NULL
+        AND e.date = rival.character.dod
+    ) AS is_rival_death_episode
+
+WITH s, cand, character, rivals, rival_full_name_present,
+    ((has_memorial_keywords AND has_deceased_rival) OR is_rival_death_episode)
+    AND cand.active AS excluded_by_memorial
+
+WHERE cand.active  // Only link temporally active characters
+  AND NOT rival_full_name_present  // Exclude if rival's full name present
+  AND NOT excluded_by_memorial  // Exclude living candidates when discussing deceased rivals
+  AND (cand.definite
+       OR size(rivals) = 0  // Only candidate for this alias - always match
+       OR (cand.score >= 1  // Multiple candidates - require score >= 1 and be highest
+           AND NONE(r IN rivals WHERE r.score >= cand.score)))
 MERGE (character)-[:APPEARS_IN]->(s)
 """
 
