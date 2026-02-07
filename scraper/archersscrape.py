@@ -189,9 +189,9 @@ class ArchersDatabase:
 
     def setup_database(self, setup_file):
         with self.driver.session() as session:
-            count_res = session.run("MATCH p=()-[]->() RETURN count(p) as count").single()
-            
-            if count_res["count"] > 0: return None
+            exists = session.run("MATCH (n) RETURN true LIMIT 1").single()
+
+            if exists is not None: return None
 
             print(f"Database empty. Loading initial setup from {setup_file}...")
 
@@ -301,7 +301,9 @@ class ArchersDatabase:
             print(f"Cleanup complete: {results}")
         return total
         
-    def link_all_characters_to_scenes(self):
+    def link_all_characters_to_scenes(self, episode_pids=None):
+        pid_filter = "AND e.pid IN $pids" if episode_pids is not None else ""
+
         shared_terms_preamble = """
             MATCH (c0:Character)
             UNWIND (coalesce(c0.aliases, []) + [c0.name]) AS term
@@ -321,6 +323,7 @@ class ArchersDatabase:
 
             MATCH (s:Scene)-[:PART_OF]->(e:Episode)
             WHERE s.text =~ regex
+              """ + pid_filter + """
               AND (c.dob IS NULL OR e.date >= c.dob)
               AND (c.dod IS NULL OR e.date <= c.dod)
               AND (c.first_appearance IS NULL OR e.date >= c.first_appearance)
@@ -339,6 +342,7 @@ class ArchersDatabase:
 
             MATCH (s:Scene)-[:PART_OF]->(e:Episode)
             WHERE s.text =~ regex
+              """ + pid_filter + """
               AND (c.dob IS NULL OR e.date >= c.dob)
               AND (c.dod IS NULL OR e.date <= c.dod)
               AND (c.first_appearance IS NULL OR e.date >= c.first_appearance)
@@ -397,13 +401,15 @@ class ArchersDatabase:
         """
 
         with self.driver.session() as session:
+            params = {'pids': episode_pids} if episode_pids is not None else {}
+
             print("Pass 1: Linking unambiguous characters...")
-            result = session.run(pass1_query)
+            result = session.run(pass1_query, **params)
             pass1_links = result.consume().counters.relationships_created
             print(f"Pass 1 complete. Relationships created: {pass1_links}")
 
             print("Pass 2: Resolving ambiguous characters...")
-            result = session.run(pass2_query)
+            result = session.run(pass2_query, **params)
             pass2_links = result.consume().counters.relationships_created
             print(f"Pass 2 complete. Relationships created: {pass2_links}")
 
@@ -551,12 +557,13 @@ def update_db(from_cache=False):
         detailed_episode_data = processor.process_batch(episodes_to_process)
 
     db = ArchersDatabase()
+    new_pids = [ep['pid'] for ep in detailed_episode_data]
+
     try:
         if detailed_episode_data:
             db.add_episodes_with_scenes(detailed_episode_data)
-    
-        db.handle_duplicate_episodes()
-        db.link_all_characters_to_scenes()
+            db.handle_duplicate_episodes()
+            db.link_all_characters_to_scenes(episode_pids=new_pids)
     except Exception as e:
         print(f"Database Error: {e}")
     finally:
