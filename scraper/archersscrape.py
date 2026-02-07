@@ -68,7 +68,7 @@ class WebScraper:
                 'synopsis': synopsis_text
             }
         except Exception as e:
-            print(f"Error getting episode data: PID {pid}", e)
+            print(f"Error getting episode data: PID {pid}: {e}")
             return None
 
     def get_paginated_episodes(self, series_id, first_page=1, last_page=1):
@@ -425,23 +425,16 @@ class ArchersDatabase:
         MERGE (c)-[r:APPEARS_IN]->(s)
         RETURN count(r) AS links_created
         """
-        
-        try:
-            with self.driver.session() as session:
-                result = session.run(query, char_name=character_name, scene_ids=scene_ids)
-                record = result.single()
-                
-                if record and record['links_created'] > 0:
-                    print(f"Successfully created {record['links_created']} link(s) for '{character_name}'.")
 
-                    return True
-                else:
-                    print(f"Warning: No links created. Check if character name or scene IDs exist.")
-                    return False
+        with self.driver.session() as session:
+            result = session.run(query, char_name=character_name, scene_ids=scene_ids)
+            record = result.single()
+            links = record['links_created'] if record else 0
 
-        except Exception as e:
-            print(f"Database Error: {e}")
-            return False
+            if links > 0:
+                print(f"Created {links} link(s) for '{character_name}'.")
+            else:
+                print(f"Warning: No links created. Check if character name or scene IDs exist.")
 
 
     def cleanup_empty_scenes(self):
@@ -482,94 +475,94 @@ class ArchersDatabase:
                 else:
                     print("Skipped.")
 
-def update_db(from_cache=False):
-    SERIES_ID = os.getenv("SERIES_ID")
-    CACHE_FILE = os.getenv("CACHE_FILE")
-    cached_data = []
-    last_cached_date = None
-    episodes_to_process = []
+def load_cache(cache_file):
+    if not os.path.exists(cache_file):
+        return [], None
 
-    if os.path.exists(CACHE_FILE):
-        print(f"Loading existing data from cache ({CACHE_FILE})...")
-        with open(CACHE_FILE, "r") as f:
-            cached_data = json.load(f)
-            if cached_data:
-                # Assumes cache is sorted by date descending
-                last_cached_date = datetime.strptime(cached_data[0]['date'], "%Y-%m-%d").date()
+    print(f"Loading existing data from cache ({cache_file})...")
+    with open(cache_file, "r") as f:
+        cached_data = json.load(f)
+
+    last_date = None
+    if cached_data:
+        last_date = datetime.strptime(cached_data[0]['date'], "%Y-%m-%d").date()
+
+    return cached_data, last_date
+
+def scrape_episodes(series_id, cache_file, cached_data, last_cached_date):
+    scraper = WebScraper()
+
+    if not last_cached_date:
+        print("No cache found. Performing full scrape...")
+        episodes = scraper.get_all_episodes(series_id)
+        with open(cache_file, "w") as f:
+            json.dump(episodes, f)
+        return episodes
+
+    print(f"Searching for episodes newer than {last_cached_date}...")
+    new_episodes = []
+    current_page = 1
+    found_overlap = False
+
+    while not found_overlap:
+        print(f"Checking page {current_page}...")
+        page_results = scraper.get_paginated_episodes(series_id, first_page=current_page, last_page=current_page)
+
+        if not page_results:
+            break
+
+        for ep in page_results:
+            ep_date = datetime.strptime(ep['date'], "%Y-%m-%d").date()
+            if ep_date > last_cached_date:
+                new_episodes.append(ep)
+            else:
+                found_overlap = True
+                break
+
+        if not found_overlap:
+            current_page += 1
+
+    if new_episodes:
+        print(f"Found {len(new_episodes)} new episode(s).")
+        with open(cache_file, "w") as f:
+            json.dump(new_episodes + cached_data, f)
+    else:
+        print("No new episodes found.")
+
+    return new_episodes
+
+def update_db(from_cache=False):
+    series_id = os.getenv("SERIES_ID")
+    cache_file = os.getenv("CACHE_FILE")
+
+    cached_data, last_cached_date = load_cache(cache_file)
 
     if from_cache:
-        print("Updating database from cache...")
-
         if not cached_data:
             print("Error: No cache file found to reset from.")
             return
-
         episodes_to_process = cached_data
     else:
-        scraper = WebScraper()
-        new_episodes_found = []
-        
-        if last_cached_date:
-            print(f"Searching for episodes newer than {last_cached_date}...")
-            current_page = 1
-            found_overlap = False
+        episodes_to_process = scrape_episodes(series_id, cache_file, cached_data, last_cached_date)
 
-            while not found_overlap:
-                print(f"Checking page {current_page}...")
-                page_results = scraper.get_paginated_episodes(SERIES_ID, first_page=current_page, last_page=current_page)
-                
-                if not page_results:
-                    break
+    if not episodes_to_process:
+        return
 
-                for ep in page_results:
-                    ep_date = datetime.strptime(ep['date'], "%Y-%m-%d").date()
-                    if ep_date > last_cached_date:
-                        new_episodes_found.append(ep)
-                    else:
-                        found_overlap = True
-                        break
-                
-                if not found_overlap:
-                    current_page += 1
-            
-            if new_episodes_found:
-                print(f"Found {len(new_episodes_found)} new episode(s).")
-                data_to_cache = new_episodes_found + cached_data
+    print(f"Processing {len(episodes_to_process)} episodes...")
+    processor = EpisodeProcessor()
+    detailed_episode_data = processor.process_batch(episodes_to_process)
 
-                with open(CACHE_FILE, "w") as f:
-                    json.dump(data_to_cache, f)
-                episodes_to_process = new_episodes_found
-            else:
-                print("No new episodes found.")
-        else:
-            print("No cache found. Performing full scrape...")
-            data_to_cache = scraper.get_all_episodes(SERIES_ID)
-
-            with open(CACHE_FILE, "w") as f:
-                json.dump(data_to_cache, f)
-
-            episodes_to_process = data_to_cache
-
-    detailed_episode_data = []
-    if episodes_to_process:
-        print(f"Processing {len(episodes_to_process)} episodes...")
-        processor = EpisodeProcessor()
-        detailed_episode_data = processor.process_batch(episodes_to_process)
+    if not detailed_episode_data:
+        return
 
     db = ArchersDatabase()
-    new_pids = [ep['pid'] for ep in detailed_episode_data]
-
     try:
-        if detailed_episode_data:
-            db.add_episodes_with_scenes(detailed_episode_data)
-            db.handle_duplicate_episodes()
-            db.link_all_characters_to_scenes(episode_pids=new_pids)
-    except Exception as e:
-        print(f"Database Error: {e}")
+        db.add_episodes_with_scenes(detailed_episode_data)
+        db.handle_duplicate_episodes()
+        new_pids = [ep['pid'] for ep in detailed_episode_data]
+        db.link_all_characters_to_scenes(episode_pids=new_pids)
     finally:
         db.close()
-    
-    print("Done.")
 
 def main():
     parser = argparse.ArgumentParser(description="Neo4j Ambridge database")
@@ -582,37 +575,33 @@ def main():
     link_parser.add_argument('--scenes', type=str, nargs='+', required=True, help='List of scene IDs (space-separated)')
     link_parser.add_argument('--character', type=str, required=True, help='Character name or ID')
 
-    cleanup_parser = subparsers.add_parser('cleanup', help='Review and merge empty scenes')
+    subparsers.add_parser('cleanup', help='Review and merge empty scenes')
 
     args = parser.parse_args()
 
-    if args.command == 'link':
-        db = ArchersDatabase()
-        try:
-            print(f"Manually linking character '{args.character}' to scenes...")
-            success = db.manual_link_character_to_scenes(args.scenes, args.character)
-
-            if success:
-                print("Link established successfully.")
-        except Exception as e:
-            print(f"Error: {e}")
-        finally:
-            db.close()
-        return
-
-    if args.command == 'update':
-        update_db(args.from_cache)
-    elif args.command == 'cleanup':
-        db = ArchersDatabase()
-        try:
-            db.cleanup_empty_scenes()
-        except Exception as e:
-            print(f"Error: {e}")
-        finally:
-            db.close()
-        return
-    else:
+    if not args.command:
         parser.print_help()
+        return
+
+    try:
+        if args.command == 'update':
+            update_db(args.from_cache)
+        elif args.command == 'link':
+            db = ArchersDatabase()
+            try:
+                print(f"Linking character '{args.character}' to scenes...")
+                db.manual_link_character_to_scenes(args.scenes, args.character)
+            finally:
+                db.close()
+        elif args.command == 'cleanup':
+            db = ArchersDatabase()
+            try:
+                db.cleanup_empty_scenes()
+            finally:
+                db.close()
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
