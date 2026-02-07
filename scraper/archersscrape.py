@@ -301,95 +301,66 @@ class ArchersDatabase:
             print(f"Cleanup complete: {results}")
         return total
         
-    def get_character_segments(self):
-        shared_terms_query = """
-            MATCH (c:Character)
-            UNWIND (c.aliases + [c.name]) AS term
-            WITH term, count(c) AS usage_count
-            WHERE usage_count > 1
-            RETURN collect(DISTINCT term) AS shared_terms
-        """
-    
-        chars_query = """
-            MATCH (c:Character)
-            WITH c, (c.aliases + [c.name]) AS character_terms
-            WHERE 
-                ($find_ambiguous AND ANY(term IN character_terms WHERE term IN $shared_terms))
-                OR 
-                (NOT $find_ambiguous AND NONE(term IN character_terms WHERE term IN $shared_terms))
-            RETURN c.name as name, c.aliases as aliases
-        """
-
-        with self.driver.session() as session:
-            shared_result = session.run(shared_terms_query).single()
-            shared_terms = shared_result["shared_terms"] if shared_result else []
-            
-            unambiguous = session.run(
-                chars_query, 
-                find_ambiguous=False, 
-                shared_terms=shared_terms
-            ).data()
-            
-            ambiguous = session.run(
-                chars_query, 
-                find_ambiguous=True, 
-                shared_terms=shared_terms
-            ).data()
-            
-            return unambiguous, ambiguous
-
     def link_all_characters_to_scenes(self):
-        unambiguous, ambiguous = self.get_character_segments()
-        
-        pass1_query = """
-            MATCH (c:Character {name: $name})
+        shared_terms_preamble = """
+            MATCH (c0:Character)
+            UNWIND (coalesce(c0.aliases, []) + [c0.name]) AS term
+            WITH term, count(c0) AS usage_count
+            WHERE usage_count > 1
+            WITH collect(DISTINCT term) AS shared_terms
+        """
+
+        pass1_query = shared_terms_preamble + """
+            // Find unambiguous characters and build regex from names + aliases
+            MATCH (c:Character)
+            WITH c, shared_terms, (coalesce(c.aliases, []) + [c.name]) AS terms
+            WHERE NONE(term IN terms WHERE term IN shared_terms)
+            WITH c, '.*\\\\b(' + reduce(s = '', t IN terms |
+                CASE WHEN s = '' THEN t ELSE s + '|' + t END
+            ) + ')\\\\b.*' AS regex
+
             MATCH (s:Scene)-[:PART_OF]->(e:Episode)
-            WHERE s.text =~ $regex
+            WHERE s.text =~ regex
               AND (c.dob IS NULL OR e.date >= c.dob)
               AND (c.dod IS NULL OR e.date <= c.dod)
               AND (c.first_appearance IS NULL OR e.date >= c.first_appearance)
               AND (c.last_appearance IS NULL OR e.date <= c.last_appearance)
             MERGE (c)-[:APPEARS_IN]->(s)
-            RETURN count(s) as matches
         """
 
-        pass2_query = """
-            MATCH (c:Character {name: $name})
+        pass2_query = shared_terms_preamble + """
+            // Find ambiguous characters and build regex from names + aliases
+            MATCH (c:Character)
+            WITH c, shared_terms, (coalesce(c.aliases, []) + [c.name]) AS terms
+            WHERE ANY(term IN terms WHERE term IN shared_terms)
+            WITH c, '.*\\\\b(' + reduce(s = '', t IN terms |
+                CASE WHEN s = '' THEN t ELSE s + '|' + t END
+            ) + ')\\\\b.*' AS regex
+
             MATCH (s:Scene)-[:PART_OF]->(e:Episode)
-            WHERE s.text =~ $regex
+            WHERE s.text =~ regex
               AND (c.dob IS NULL OR e.date >= c.dob)
               AND (c.dod IS NULL OR e.date <= c.dod)
               AND (c.first_appearance IS NULL OR e.date >= c.first_appearance)
               AND (c.last_appearance IS NULL OR e.date <= c.last_appearance)
-            
-            // Identify conflicting characters
-            OPTIONAL MATCH (other:Character)
-            WHERE other <> c 
-              AND ANY(a IN other.aliases WHERE a IN $aliases)
-              AND (other.dob IS NULL OR e.date >= other.dob)
-              AND (other.first_appearance IS NULL OR e.date >= other.first_appearance)
-            
-            // Count total characters currently linked to the scene
-            OPTIONAL MATCH (s)<-[:APPEARS_IN]-(anyone:Character)
-            WITH s, c, e, other, count(DISTINCT anyone) AS total_others
 
-            // Count close family (spouse, parent, child, sibling) - weight 3
+            // Count close family (spouse, parent, child, sibling) in scene - weight 3
             OPTIONAL MATCH (s)<-[:APPEARS_IN]-(closeRelative:Character)
             WHERE (c)-[:SPOUSE|ROMANTIC_RELATIONSHIP]-(closeRelative)
                OR (c)-[:CHILD_OF]->(closeRelative)
                OR (closeRelative)-[:CHILD_OF]->(c)
                OR (c)-[:CHILD_OF]->(:Character)<-[:CHILD_OF]-(closeRelative)
 
-            WITH s, c, e, other, total_others, count(DISTINCT closeRelative) AS close_family
+            WITH s, c, e, count(DISTINCT closeRelative) AS close_family
 
-            // Count grandparents/grandchildren - weight 2
+            // Count grandparents/grandchildren in scene - weight 2
             OPTIONAL MATCH (s)<-[:APPEARS_IN]-(distantRelative:Character)
             WHERE (c)-[:CHILD_OF*2]->(distantRelative)
                OR (distantRelative)-[:CHILD_OF*2]->(c)
 
-            WITH s, c, e, other, total_others, close_family, count(DISTINCT distantRelative) AS distant_family
+            WITH s, c, e, close_family, count(DISTINCT distantRelative) AS distant_family
 
-            // Count co-habitants/co-workers (share location at episode date) - weight 2
+            // Count co-habitants/co-workers in scene - weight 2
             OPTIONAL MATCH (s)<-[:APPEARS_IN]-(cohabitant:Character)
             WHERE EXISTS {
                 MATCH (c)-[r1:LIVES_AT|WORKS_AT]->(loc:Location)<-[r2:LIVES_AT|WORKS_AT]-(cohabitant)
@@ -397,52 +368,47 @@ class ArchersDatabase:
                   AND (r2.from IS NULL OR r2.from <= e.date) AND (r2.to IS NULL OR r2.to >= e.date)
             }
 
-            WITH s, c, e,
-                count(DISTINCT other) AS active_conflicts,
-                total_others,
-                close_family,
-                distant_family,
+            WITH s, c, e, close_family, distant_family,
                 count(DISTINCT cohabitant) AS cohabitant_count
 
-            // Apply Logic and Score Calculation
-            WITH s, c, e, active_conflicts, total_others,
-                (close_family * 3) + (distant_family * 2) + (cohabitant_count * 2) AS family_score
+            // Score each candidate and flag definite matches
+            WITH s, c, e,
+                (close_family * 3) + (cohabitant_count * 2) + distant_family AS family_score,
+                CASE WHEN s.text CONTAINS c.name OR e.date = c.dob OR e.date = c.dod
+                     THEN true ELSE false END AS definite_match
 
-            WHERE s.text CONTAINS c.name
-            OR e.date = c.dob
-            OR e.date = c.dod
-            OR active_conflicts = 0
-            OR (toFloat(family_score) / NULLIF(total_others, 0)) >= 1 // TODO: compare against the other candidates' scores rather than total_others and pick the highest weighted option
+            // Collect all candidates per scene and pick the best match for each alias group
+            WITH s, collect({
+                character: c,
+                score: family_score,
+                definite: definite_match,
+                aliases: coalesce(c.aliases, [])
+            }) AS candidates
 
-            // Final Merge
-            MERGE (c)-[:APPEARS_IN]->(s)
-            RETURN count(s) as matches
+            UNWIND candidates AS cand
+            WITH s, cand, candidates, cand.character AS character
+            WHERE cand.definite
+               OR NONE(rival IN candidates
+                   WHERE rival.character <> character
+                   AND rival.score >= cand.score
+                   AND ANY(a IN rival.aliases WHERE a IN cand.aliases)
+               )
+            MERGE (character)-[:APPEARS_IN]->(s)
         """
 
         with self.driver.session() as session:
-            total_links = 0
-            
-            print(f"Pass 1: Linking {len(unambiguous)} unique characters...")
-            for i, char in enumerate(unambiguous):
-                aliases = char['aliases'] if char['aliases'] is not None else []
-                all_names = [re.escape(char['name'])] + [re.escape(a) for a in aliases]
-                regex_pattern = f".*\\b({'|'.join(all_names)})\\b.*"
-                
-                result = session.run(pass1_query, name=char['name'], regex=regex_pattern)
-                total_links += result.consume().counters.relationships_created
-                print(f"Progress: {i+1}/{len(unambiguous)} | Total Links: {total_links}", end='\r')
+            print("Pass 1: Linking unambiguous characters...")
+            result = session.run(pass1_query)
+            pass1_links = result.consume().counters.relationships_created
+            print(f"Pass 1 complete. Relationships created: {pass1_links}")
 
-            print(f"\nPass 2: Resolving {len(ambiguous)} ambiguous characters...")
-            for i, char in enumerate(ambiguous):
-                aliases = char['aliases'] if char['aliases'] is not None else []
-                all_names = [re.escape(char['name'])] + [re.escape(a) for a in aliases]
-                regex_pattern = f".*\\b({'|'.join(all_names)})\\b.*"
-                
-                result = session.run(pass2_query, name=char['name'], regex=regex_pattern, aliases=aliases)
-                total_links += result.consume().counters.relationships_created
-                print(f"Progress: {i+1}/{len(ambiguous)} | Total Links: {total_links}", end='\r')
-            
-            print(f"\nFinished. Total relationships created: {total_links}")
+            print("Pass 2: Resolving ambiguous characters...")
+            result = session.run(pass2_query)
+            pass2_links = result.consume().counters.relationships_created
+            print(f"Pass 2 complete. Relationships created: {pass2_links}")
+
+            total_links = pass1_links + pass2_links
+            print(f"Finished. Total relationships created: {total_links}")
             return total_links
 
     def manual_link_character_to_scenes(self, scene_ids, character_name):
