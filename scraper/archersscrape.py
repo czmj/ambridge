@@ -371,25 +371,50 @@ class ArchersDatabase:
             
             // Count total characters currently linked to the scene
             OPTIONAL MATCH (s)<-[:APPEARS_IN]-(anyone:Character)
-            WITH s, c, other, count(DISTINCT anyone) AS total_others
-            
-            // Count family members
-            OPTIONAL MATCH (s)<-[:APPEARS_IN]-(relative:Character)
-            WHERE 
-                (c)-[:SPOUSE]-(relative) 
-                OR (relative)-[:CHILD_OF*1..2]->(c)
-                OR (c)-[:CHILD_OF*1..2]->(relative)
-            
-            WITH s, c, 
-                 count(DISTINCT other) AS active_conflicts, 
-                 total_others, 
-                 count(DISTINCT relative) AS family_present
-            
-            // Resolution Logic
-            WHERE s.text CONTAINS c.name
-               OR active_conflicts = 0
-               OR (total_others > 0 AND (toFloat(family_present) / total_others) >= 0.5) // TODO: Weight score more towards spouses and children than grandchildren, and pick the highest weighted option
+            WITH s, c, e, other, count(DISTINCT anyone) AS total_others
 
+            // Count close family (spouse, parent, child, sibling) - weight 3
+            OPTIONAL MATCH (s)<-[:APPEARS_IN]-(closeRelative:Character)
+            WHERE (c)-[:SPOUSE|ROMANTIC_RELATIONSHIP]-(closeRelative)
+               OR (c)-[:CHILD_OF]->(closeRelative)
+               OR (closeRelative)-[:CHILD_OF]->(c)
+               OR (c)-[:CHILD_OF]->(:Character)<-[:CHILD_OF]-(closeRelative)
+
+            WITH s, c, e, other, total_others, count(DISTINCT closeRelative) AS close_family
+
+            // Count grandparents/grandchildren - weight 2
+            OPTIONAL MATCH (s)<-[:APPEARS_IN]-(distantRelative:Character)
+            WHERE (c)-[:CHILD_OF*2]->(distantRelative)
+               OR (distantRelative)-[:CHILD_OF*2]->(c)
+
+            WITH s, c, e, other, total_others, close_family, count(DISTINCT distantRelative) AS distant_family
+
+            // Count co-habitants/co-workers (share location at episode date) - weight 2
+            OPTIONAL MATCH (s)<-[:APPEARS_IN]-(cohabitant:Character)
+            WHERE EXISTS {
+                MATCH (c)-[r1:LIVES_AT|WORKS_AT]->(loc:Location)<-[r2:LIVES_AT|WORKS_AT]-(cohabitant)
+                WHERE (r1.from IS NULL OR r1.from <= e.date) AND (r1.to IS NULL OR r1.to >= e.date)
+                  AND (r2.from IS NULL OR r2.from <= e.date) AND (r2.to IS NULL OR r2.to >= e.date)
+            }
+
+            WITH s, c, e,
+                count(DISTINCT other) AS active_conflicts,
+                total_others,
+                close_family,
+                distant_family,
+                count(DISTINCT cohabitant) AS cohabitant_count
+
+            // Apply Logic and Score Calculation
+            WITH s, c, e, active_conflicts, total_others,
+                (close_family * 3) + (distant_family * 2) + (cohabitant_count * 2) AS family_score
+
+            WHERE s.text CONTAINS c.name
+            OR e.date = c.dob
+            OR e.date = c.dod
+            OR active_conflicts = 0
+            OR (toFloat(family_score) / NULLIF(total_others, 0)) >= 1 // TODO: compare against the other candidates' scores rather than total_others and pick the highest weighted option
+
+            // Final Merge
             MERGE (c)-[:APPEARS_IN]->(s)
             RETURN count(s) as matches
         """
