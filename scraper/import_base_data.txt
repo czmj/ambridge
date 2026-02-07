@@ -50,7 +50,7 @@ MERGE (helen:Character {name: "Helen Archer", aliases: ["Helen"], dob: date("197
 MERGE (henry:Character {name: "Henry Archer", aliases: ["Henry"], dob: date("2011-01-02"), gender: "Male"})
 MERGE (ian:Character {name: "Ian Craig", aliases: ["Ian"], gender: "Male"})
 MERGE (ivy:Character {name: "Ivy Horrobin", aliases: ["Ivy"], dod: date("2011-11-01"), gender: "Female"})
-MERGE (jackASr:Character {name: "Jack Archer (Sr.)", aliases: ["Jack"], dob: date("1922-12-17"), dod: date("1972-01-11"), gender: "Male"})
+MERGE (jackASr:Character {name: "Jack Archer (Sr.)", dob: date("1922-12-17"), dod: date("1972-01-11"), gender: "Male"})
 MERGE (jackA:Character {name: "Jack Archer", aliases: ["Jack", "Gideon"], dob: date("2016-05-21"), gender: "Male", keywords: ["custody", "access"]})
 MERGE (jackW:Character {name: "Jack Woolley", aliases: ["Jack"], dob: date("1919-07-19"), dod: date("2014-01-02"), gender: "Male", keywords: ["Grey Gables", "Laurels", "dementia"]})
 MERGE (jakob:Character {name: "Jakob Hakansson", aliases: ["Jakob"], gender: "Male"})
