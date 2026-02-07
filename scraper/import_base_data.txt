@@ -34,7 +34,7 @@ MERGE (danH:Character {name: "Dan Hebden Lloyd", aliases: ["Dan", "Daniel"], dob
 MERGE (dan:Character {name: "Daniel Archer", aliases: ["Daniel", "Dan"], dob: date("1896-10-15"), dod: date("1986-04-23"), gender: "Male"})
 MERGE (david:Character {name: "David Archer", aliases: ["David"], dob: date("1959-09-18"), gender: "Male"})
 MERGE (debbie:Character {name: "Debbie Aldridge", aliases: ["Debbie"], dob: date("1970-12-24"), gender: "Female"})
-MERGE (doris:Character {name: "Doris Archer", aliases: ["Doris"], dob: date("1900-07-11"), dod: date("1980-10-27"), gender: "Female"})
+MERGE (doris:Character {name: "Doris Archer", dob: date("1900-07-11"), dod: date("1980-10-27"), gender: "Female", notes: "DOB disputed: some sources give 1897, which would make her 82 at death rather than 80"})
 MERGE (ed:Character {name: "Ed Grundy", aliases: ["Ed"], dob: date("1984-09-28"), gender: "Male"})
 MERGE (eddie:Character {name: "Eddie Grundy", aliases: ["Eddie"], dob: date("1951-03-15"), gender: "Male"})
 MERGE (elizabeth:Character {name: "Elizabeth Pargetter", aliases: ["Elizabeth"], dob: date("1967-04-21"), gender: "Female"})
@@ -102,7 +102,7 @@ MERGE (oscar:Character {name: "Oscar Bamford", aliases: ["Oscar"], gender: "Male
 MERGE (pat:Character {name: "Pat Archer", aliases: ["Pat"], dob: date("1952-01-10"), gender: "Female"})
 MERGE (paul:Character {name: "Paul Mack", aliases: ["Paul"], gender: "Male"})
 MERGE (peggy:Character {name: "Peggy Woolley", aliases: ["Peggy"], dob: date("1924-11-13"), dod: date("2025-05-08"), gender: "Female"})
-MERGE (phil:Character {name: "Phil Archer", aliases: ["Phil"], dod: date("2010-02-12"), gender: "Male"})
+MERGE (phil:Character {name: "Phil Archer", aliases: ["Phil"], dob: date("1928-04-23"), dod: date("2010-02-12"), gender: "Male"})
 MERGE (phoebe:Character {name: "Phoebe Aldridge", aliases: ["Phoebe"], dob: date("1998-12-16"), gender: "Female"})
 MERGE (pip:Character {name: "Pip Archer", aliases: ["Pip", "Phiz"], dob: date("1993-02-17"), gender: "Female"})
 MERGE (poppy:Character {name: "Poppy Grundy", aliases: ["Poppy"], dob: date("2013-09-30"), gender: "Female"})
@@ -115,7 +115,7 @@ MERGE (ruairi:Character {name: "Ruairi Donovan", aliases: ["Ruairi"], dob: date(
 MERGE (ruth:Character {name: "Ruth Archer", aliases: ["Ruth"], dob: date("1968-06-16"), gender: "Female"})
 MERGE (sharon:Character {name: "Sharon Richards", aliases: ["Sharon"], dob: date("1972-03-07"), gender: "Female"})
 MERGE (shula:Character {name: "Shula Hebden Lloyd", aliases: ["Shula"], dob: date("1958-08-08"), gender: "Female"})
-MERGE (siobhan:Character {name: "Siobhan Hathaway", aliases: ["Siobhan"], dod: date("2007-05-31"), gender: "Female"})
+MERGE (siobhan:Character {name: "Siobhan Hathaway", aliases: ["Siobhan", "Siobhán"], dod: date("2007-05-31"), gender: "Female"})
 MERGE (stella:Character {name: "Stella Pryor", aliases: ["Stella"], gender: "Female"})
 MERGE (stewart:Character {name: "Stewart Horrobin", aliases: ["Stewart"], gender: "Male"})
 MERGE (susan:Character {name: "Susan Carter", aliases: ["Susan"], dob: date("1963-10-10"), gender: "Female"})
@@ -149,6 +149,11 @@ MERGE (faith:Character {name: "Faith", aliases: ["Faith"], gender: "Female"})
 MERGE (chuck:Character {name: "Chuck", aliases: ["Chuck"], gender: "Male"})
 MERGE (annette:Character {name: "Annette Turner", aliases: ["Annette"], gender: "Female"})
 MERGE (greg:Character {name: "Greg Turner", aliases: ["Greg"], dod: date("2004-05-07"), gender: "Male"})
+MERGE (nova:Character {name: "Nova Archer", aliases: ["Nova"], dob: date("2022-07-22"), gender: "Female"})
+MERGE (seren:Character {name: "Seren Archer", aliases: ["Seren"], dob: date("2022-07-22"), gender: "Female"})
+MERGE (lewis:Character {name: "Lewis Carmichael", aliases: ["Lewis"], gender: "Male"})
+MERGE (hazel:Character {name: "Hazel Woolley", aliases: ["Hazel"], gender: "Female"})
+MERGE (richardL:Character {name: "Richard Locke", aliases: ["Richard"], gender: "Male"})
 
 MERGE (jennifer)-[:CHILD_OF]->(peggy)
 MERGE (lilian)-[:CHILD_OF]->(peggy)
@@ -188,6 +193,10 @@ MERGE (john)-[:CHILD_OF]->(tony)
 MERGE (john)-[:CHILD_OF]->(pat)
 MERGE (johnny)-[:CHILD_OF]->(john)
 MERGE (johnny)-[:CHILD_OF]->(sharon)
+MERGE (nova)-[:CHILD_OF]->(tom)
+MERGE (nova)-[:CHILD_OF]->(natasha)
+MERGE (seren)-[:CHILD_OF]->(tom)
+MERGE (seren)-[:CHILD_OF]->(natasha)
 MERGE (henry)-[:CHILD_OF]->(helen)
 MERGE (jackA)-[:CHILD_OF]->(helen)
 MERGE (jackA)-[:CHILD_OF]->(rob)
@@ -275,6 +284,7 @@ MERGE (miles)-[:CHILD_OF]->(ursula)
 MERGE (alistair)-[:CHILD_OF]->(jim)
 MERGE (jamie)-[:CHILD_OF]->(kathy)
 MERGE (annette)-[:CHILD_OF]->(greg)
+MERGE (hazel)-[:CHILD_OF]->(jackW)
 
 MERGE (phil)-[:SPOUSE {status: "past", notes: "Widowed"}]->(jill)
 MERGE (david)-[:SPOUSE {status: "current"}]->(ruth)
@@ -362,7 +372,13 @@ MERGE (:Location {name: "The Laurels"})
 MERGE (:Location {name: "Meadow Farm"})
 MERGE (:Location {name: "Rewilding Ambridge"})
 MERGE (:Location {name: "Borchester Land"})
-MERGE (:Location {name: "Stratford-upon-Avon"});
+MERGE (:Location {name: "Stratford-upon-Avon"})
+MERGE (:Location {name: "Serendipity"})
+MERGE (:Location {name: "Willow Farm"})
+MERGE (:Location {name: "Woodbine Cottage"})
+MERGE (:Location {name: "Greenacres"})
+MERGE (:Location {name: "Keeper's Cottage"})
+MERGE (:Location {name: "The Hobbit"});
 
 // Brookfield
 MATCH (c:Character {name: "Jill Archer"}), (l:Location {name: "Brookfield"}) MERGE (c)-[:LIVES_AT]->(l);
@@ -374,8 +390,10 @@ MATCH (c:Character {name: "Ben Archer"}), (l:Location {name: "Brookfield"}) MERG
 // Brookfield Bungalow
 MATCH (c:Character {name: "Bert Fry"}), (l:Location {name: "Brookfield Bungalow"}) MERGE (c)-[:LIVES_AT]->(l);
 MATCH (c:Character {name: "Freda Fry"}), (l:Location {name: "Brookfield Bungalow"}) MERGE (c)-[:LIVES_AT]->(l);
-MATCH (c:Character {name: "Rex Fairbrother"}), (l:Location {name: "Brookfield Bungalow"}) MERGE (c)-[:LIVES_AT {from: date("2016-03-01")}]->(l);
+MATCH (c:Character {name: "Rex Fairbrother"}), (l:Location {name: "Brookfield Bungalow"}) MERGE (c)-[:LIVES_AT {from: date("2016-03-01"), to: date("2022-01-01")}]->(l);
 MATCH (c:Character {name: "Toby Fairbrother"}), (l:Location {name: "Brookfield Bungalow"}) MERGE (c)-[:LIVES_AT {from: date("2016-03-01"), to: date("2019-02-01")}]->(l);
+MATCH (c:Character {name: "Stella Pryor"}), (l:Location {name: "Brookfield Bungalow"}) MERGE (c)-[:LIVES_AT {notes: "Renting"}]->(l);
+MATCH (c:Character {name: "Hannah Riley"}), (l:Location {name: "Brookfield Bungalow"}) MERGE (c)-[:LIVES_AT {notes: "Sub-renting"}]->(l);
 
 // Bridge Farm & Beechwood (Tom)
 MATCH (c:Character {name: "Tony Archer"}), (l:Location {name: "Bridge Farm"}) MERGE (c)-[:LIVES_AT]->(l);
@@ -385,6 +403,8 @@ MATCH (c:Character {name: "Natasha Archer"}), (l:Location {name: "Beechwood (Tom
 MATCH (c:Character {name: "Helen Archer"}), (l:Location {name: "Beechwood (Tom)"}) MERGE (c)-[:LIVES_AT {from: date("2025-04-01"), notes: "Temporary"}]->(l);
 MATCH (c:Character {name: "Henry Archer"}), (l:Location {name: "Beechwood (Tom)"}) MERGE (c)-[:LIVES_AT {from: date("2025-04-01"), notes: "Temporary"}]->(l);
 MATCH (c:Character {name: "Jack Archer"}), (l:Location {name: "Beechwood (Tom)"}) MERGE (c)-[:LIVES_AT {from: date("2025-04-01"), notes: "Temporary"}]->(l);
+MATCH (c:Character {name: "Nova Archer"}), (l:Location {name: "Beechwood (Tom)"}) MERGE (c)-[:LIVES_AT {from: date("2025-03-01")}]->(l);
+MATCH (c:Character {name: "Seren Archer"}), (l:Location {name: "Beechwood (Tom)"}) MERGE (c)-[:LIVES_AT {from: date("2025-03-01")}]->(l);
 
 // Malik Family @ 20, Beechwood
 MATCH (c:Character), (l:Location {name: "20, Beechwood"})
@@ -398,9 +418,8 @@ MERGE (c)-[:LIVES_AT]->(l);
 
 // Little Grange
 MATCH (c:Character), (l:Location {name: "Little Grange"})
-WHERE c.name IN ["Ed Grundy", "Emma Grundy", "Keira Grundy", "George Grundy"]
+WHERE c.name IN ["Ed Grundy", "Emma Grundy", "Keira Grundy"]
 MERGE (c)-[:LIVES_AT]->(l);
-MATCH (c:Character {name: "Amber Gordon"}), (l:Location {name: "Little Grange"}) MERGE (c)-[:LIVES_AT {from: date("2025-10-01")}]->(l);
 
 // 6, The Green
 MATCH (c:Character), (l:Location {name: "6, The Green"})
@@ -418,7 +437,73 @@ MATCH (c:Character {name: "Lynda Snell"}), (l:Location {name: "Ambridge Hall"}) 
 MATCH (c:Character {name: "Justin Elliott"}), (l:Location {name: "Dower House"}) MERGE (c)-[:LIVES_AT]->(l);
 MATCH (c:Character {name: "Lilian Bellamy"}), (l:Location {name: "Dower House"}) MERGE (c)-[:LIVES_AT]->(l);
 MATCH (c:Character {name: "Alice Aldridge"}), (l:Location {name: "The Nest"}) MERGE (c)-[:LIVES_AT {from: date("2022-02-01")}]->(l);
+MATCH (c:Character {name: "Martha Carter"}), (l:Location {name: "The Nest"}) MERGE (c)-[:LIVES_AT {notes: "Part-time"}]->(l);
 MATCH (c:Character {name: "Jack Woolley"}), (l:Location {name: "The Laurels"}) MERGE (c)-[:LIVES_AT]->(l);
+MATCH (c:Character {name: "Christine Barford"}), (l:Location {name: "The Laurels"}) MERGE (c)-[:LIVES_AT]->(l);
+MATCH (c:Character {name: "Lewis Carmichael"}), (l:Location {name: "Lower Loxley"}) MERGE (c)-[:LIVES_AT]->(l);
+
+// Ambridge View
+MATCH (c:Character), (l:Location {name: "Ambridge View"})
+WHERE c.name IN ["Neil Carter", "Susan Carter"]
+MERGE (c)-[:LIVES_AT]->(l);
+
+// Beechwood (Joy)
+MATCH (c:Character), (l:Location {name: "Beechwood (Joy)"})
+WHERE c.name IN ["Joy Horville", "Mick Fadmoor"]
+MERGE (c)-[:LIVES_AT]->(l);
+
+// Flat over Shop
+MATCH (c:Character {name: "Christopher Carter"}), (l:Location {name: "Flat over Shop"}) MERGE (c)-[:LIVES_AT {notes: "Renting, temporarily displaced by renovations"}]->(l);
+MATCH (c:Character {name: "Martha Carter"}), (l:Location {name: "Flat over Shop"}) MERGE (c)-[:LIVES_AT {notes: "Part-time"}]->(l);
+
+// Glebe Cottage
+MATCH (c:Character {name: "Carol Tregorran"}), (l:Location {name: "Glebe Cottage"}) MERGE (c)-[:LIVES_AT {notes: "Renting"}]->(l);
+
+// Grange Farm
+MATCH (c:Character), (l:Location {name: "Grange Farm"})
+WHERE c.name IN ["Clarrie Grundy", "Eddie Grundy"]
+MERGE (c)-[:LIVES_AT {notes: "Renting"}]->(l);
+
+// 1, The Green
+MATCH (c:Character), (l:Location {name: "1, The Green"})
+WHERE c.name IN ["Will Grundy", "George Grundy", "Poppy Grundy", "Amber Gordon"]
+MERGE (c)-[:LIVES_AT]->(l);
+
+// Greenacres
+MATCH (c:Character {name: "Jim Lloyd"}), (l:Location {name: "Greenacres"}) MERGE (c)-[:LIVES_AT]->(l);
+
+// Keeper's Cottage
+MATCH (c:Character {name: "Richard Locke"}), (l:Location {name: "Keeper's Cottage"}) MERGE (c)-[:LIVES_AT {notes: "Renting"}]->(l);
+
+// The Hobbit
+MATCH (c:Character {name: "Jakob Hakansson"}), (l:Location {name: "The Hobbit"}) MERGE (c)-[:LIVES_AT {notes: "Renting"}]->(l);
+
+// Rickyard Cottage
+MATCH (c:Character), (l:Location {name: "Rickyard Cottage"})
+WHERE c.name IN ["Pip Archer", "Rosie Archer"]
+MERGE (c)-[:LIVES_AT]->(l);
+
+// Serendipity
+MATCH (c:Character {name: "Rex Fairbrother"}), (l:Location {name: "Serendipity"}) MERGE (c)-[:LIVES_AT]->(l);
+
+// The Stables
+MATCH (c:Character), (l:Location {name: "The Stables"})
+WHERE c.name IN ["Josh Archer", "Paul Mack", "Lily Pargetter"]
+MERGE (c)-[:LIVES_AT {notes: "Renting"}]->(l);
+
+// The Vicarage
+MATCH (c:Character), (l:Location {name: "The Vicarage"})
+WHERE c.name IN ["Alan Franks", "Usha Franks"]
+MERGE (c)-[:LIVES_AT]->(l);
+
+// Willow Farm
+MATCH (c:Character {name: "Kirsty Miller"}), (l:Location {name: "Willow Farm"}) MERGE (c)-[:LIVES_AT]->(l);
+MATCH (c:Character {name: "Kate Madikane"}), (l:Location {name: "Willow Farm"}) MERGE (c)-[:LIVES_AT {notes: "Renting"}]->(l);
+
+// Woodbine Cottage
+MATCH (c:Character), (l:Location {name: "Woodbine Cottage"})
+WHERE c.name IN ["Harrison Burns", "Fallon Rogers"]
+MERGE (c)-[:LIVES_AT]->(l);
 
 // WORKS_AT
 
@@ -428,6 +513,52 @@ MERGE (c)-[:WORKS_AT]->(l);
 
 MATCH (c:Character {name: "Justin Elliott"}), (l:Location {name: "Borchester Land"})
 MERGE (c)-[:WORKS_AT]->(l);
+
+// OWNS
+
+MATCH (c:Character {name: "Robert Snell"}), (l:Location {name: "Ambridge Hall"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Lynda Snell"}), (l:Location {name: "Ambridge Hall"}) MERGE (c)-[:OWNS]->(l);
+
+MATCH (c:Character), (l:Location {name: "Ambridge View"})
+WHERE c.name IN ["Susan Carter", "Neil Carter"]
+MERGE (c)-[:OWNS]->(l);
+
+MATCH (c:Character {name: "Kathy Perks"}), (l:Location {name: "April Cottage"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Usha Franks"}), (l:Location {name: "Blossom Hill Cottage"}) MERGE (c)-[:OWNS]->(l);
+
+MATCH (c:Character), (l:Location {name: "Bridge Farm"})
+WHERE c.name IN ["Pat Archer", "Tony Archer"]
+MERGE (c)-[:OWNS]->(l);
+
+MATCH (c:Character {name: "Lilian Bellamy"}), (l:Location {name: "The Bull"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Jolene Archer"}), (l:Location {name: "The Bull"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Jamie Perks"}), (l:Location {name: "The Bull"}) MERGE (c)-[:OWNS]->(l);
+
+MATCH (c:Character {name: "Justin Elliott"}), (l:Location {name: "Dower House"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Hazel Woolley"}), (l:Location {name: "Flat over Shop"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Jill Archer"}), (l:Location {name: "Glebe Cottage"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Oliver Sterling"}), (l:Location {name: "Grange Farm"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Oliver Sterling"}), (l:Location {name: "Grey Gables"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Will Grundy"}), (l:Location {name: "1, The Green"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Jim Lloyd"}), (l:Location {name: "Greenacres"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Christopher Carter"}), (l:Location {name: "The Hobbit"}) MERGE (c)-[:OWNS]->(l);
+
+MATCH (c:Character), (l:Location {name: "Honeysuckle Cottage"})
+WHERE c.name IN ["Ian Craig", "Adam Macy"]
+MERGE (c)-[:OWNS]->(l);
+
+MATCH (c:Character {name: "Hazel Woolley"}), (l:Location {name: "Keeper's Cottage"}) MERGE (c)-[:OWNS]->(l);
+MATCH (c:Character {name: "Emma Grundy"}), (l:Location {name: "Little Grange"}) MERGE (c)-[:OWNS]->(l);
+
+MATCH (c:Character), (l:Location {name: "The Stables"})
+WHERE c.name IN ["Alistair Lloyd", "Shula Hebden Lloyd"]
+MERGE (c)-[:OWNS]->(l);
+
+MATCH (c:Character {name: "Kirsty Miller"}), (l:Location {name: "Willow Farm"}) MERGE (c)-[:OWNS]->(l);
+
+MATCH (c:Character), (l:Location {name: "Woodbine Cottage"})
+WHERE c.name IN ["Harrison Burns", "Fallon Rogers"]
+MERGE (c)-[:OWNS]->(l);
 
 MATCH (c:Character)
 WITH c, toLower(c.name) AS lowName
