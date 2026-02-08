@@ -14,6 +14,8 @@ from queries import (
     MANUAL_LINK_CHARACTER,
     FIND_EMPTY_SCENES,
     MERGE_SCENES,
+    FIND_SINGLE_SCENE_EPISODES,
+    DELETE_EPISODES,
 )
 
 load_dotenv()
@@ -21,28 +23,36 @@ load_dotenv()
 
 class ArchersDatabase:
     def __init__(self, setup_file="import_base_data.txt"):
+        module_dir = os.path.dirname(os.path.abspath(__file__))
+        self.setup_file_path = os.path.join(module_dir, setup_file)
 
         URI = os.getenv("NEO4J_URI")
         USER = os.getenv("NEO4J_USER")
         PWD = os.getenv("NEO4J_PASSWORD")
 
-        # Check if variables were loaded correctly to avoid connection errors
         if not all([URI, USER, PWD]):
             raise ValueError("Missing Neo4j credentials in .env file")
 
         self.driver = GraphDatabase.driver(URI, auth=(USER, PWD))
-        self.setup_database(setup_file)
+        self.setup_database()
 
-    def setup_database(self, setup_file):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        return False
+
+    def setup_database(self):
         with self.driver.session() as session:
             exists = session.run(CHECK_DB_EXISTS).single()
 
             if exists is not None: return None
 
-            print(f"Database empty. Loading initial setup from {setup_file}...")
+            print(f"Database empty. Loading initial setup from {self.setup_file_path}...")
 
-            if os.path.exists(setup_file):
-                with open(setup_file, "r") as f:
+            if os.path.exists(self.setup_file_path):
+                with open(self.setup_file_path, "r") as f:
                     statements = f.read().split(";")
 
                     for statement in statements:
@@ -51,7 +61,7 @@ class ArchersDatabase:
                             session.run(cmd)
                 print("Initial characters and constraints imported successfully.")
             else:
-                print(f"Warning: {setup_file} not found. Proceeding with empty database.")
+                print(f"Warning: {self.setup_file_path} not found. Proceeding with empty database.")
 
     def close(self):
         self.driver.close()
@@ -74,14 +84,22 @@ class ArchersDatabase:
                 ]
             })
 
+        CHUNK_SIZE = 500
+        total_nodes = 0
+
         with self.driver.session() as session:
-            result = session.run(ADD_EPISODES_WITH_SCENES, batch=formatted_batch)
-            summary = result.consume()
-            new_nodes = summary.counters.nodes_created
+            for i in range(0, len(formatted_batch), CHUNK_SIZE):
+                chunk = formatted_batch[i:i + CHUNK_SIZE]
+                result = session.run(ADD_EPISODES_WITH_SCENES, batch=chunk)
+                summary = result.consume()
+                chunk_nodes = summary.counters.nodes_created
+                total_nodes += chunk_nodes
 
-            print(f"Added {new_nodes} new node(s) to database.")
+                if len(formatted_batch) > CHUNK_SIZE:
+                    print(f"Progress: {min(i + CHUNK_SIZE, len(formatted_batch))}/{len(formatted_batch)} episodes processed")
 
-            return new_nodes
+            print(f"Added {total_nodes} new node(s) to database.")
+            return total_nodes
 
     def handle_duplicate_episodes(self):
         queries = {
@@ -103,6 +121,19 @@ class ArchersDatabase:
         if total > 0:
             print(f"Cleanup complete: {results}")
         return total
+
+    def find_single_scene_episodes(self):
+        with self.driver.session() as session:
+            records = list(session.run(FIND_SINGLE_SCENE_EPISODES))
+            return [rec["pid"] for rec in records]
+
+    def delete_episodes(self, pids):
+        with self.driver.session() as session:
+            result = session.run(DELETE_EPISODES, pids=pids)
+            record = result.single()
+            count = record["count"] if record else 0
+            print(f"Deleted {count} episode(s) for re-scrape.")
+            return count
 
     def link_all_characters_to_scenes(self, episode_pids=None):
         pid_filter = "AND e.pid IN $pids" if episode_pids is not None else ""

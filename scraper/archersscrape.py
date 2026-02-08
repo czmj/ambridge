@@ -2,10 +2,11 @@ import os
 import json
 import argparse
 import sys
+import time
 from datetime import datetime
 
 from web_scraper import WebScraper
-from processor import EpisodeProcessor
+from processor import process_batch
 from database import ArchersDatabase
 from cache import load_cache
 
@@ -52,9 +53,35 @@ def scrape_episodes(series_id, cache_file, cached_data, last_cached_date):
 
     return new_episodes
 
-def update_db(from_cache=False):
-    series_id = os.getenv("SERIES_ID")
+
+def rescrape_single_scene_episodes(db):
+    pids = db.find_single_scene_episodes()
+    if not pids:
+        return []
+
+    print(f"Found {len(pids)} recent episode(s) with only 1 scene — re-scraping...")
+    scraper = WebScraper()
+    episodes = [scraper.get_episode(pid) for pid in pids]
+    episodes = [ep for ep in episodes if ep is not None]
+
+    rescrape_pids = [ep['pid'] for ep in episodes]
+    if rescrape_pids:
+        db.delete_episodes(rescrape_pids)
+
+    return episodes
+
+
+def update_db(from_cache=False, dry_run=False):
+    start_time = time.perf_counter()
+
     cache_file = os.getenv("CACHE_FILE")
+    if not cache_file:
+        raise ValueError("CACHE_FILE environment variable is not set")
+
+    if not from_cache:
+        series_id = os.getenv("SERIES_ID")
+        if not series_id:
+            raise ValueError("SERIES_ID environment variable is not set (required when not using --from-cache)")
 
     cached_data, last_cached_date = load_cache(cache_file)
 
@@ -64,26 +91,62 @@ def update_db(from_cache=False):
             return
         episodes_to_process = cached_data
     else:
+        scrape_start = time.perf_counter()
         episodes_to_process = scrape_episodes(series_id, cache_file, cached_data, last_cached_date)
+        print(f"Scraping completed in {time.perf_counter() - scrape_start:.2f}s")
 
     if not episodes_to_process:
-        return
+        episodes_to_process = []
 
-    print(f"Processing {len(episodes_to_process)} episodes...")
-    processor = EpisodeProcessor()
-    detailed_episode_data = processor.process_batch(episodes_to_process)
+    process_start = time.perf_counter()
 
-    if not detailed_episode_data:
-        return
+    with ArchersDatabase() as db:
+        # Re-scrape recent episodes that only had 1 scene (incomplete blurb)
+        if not from_cache:
+            rescraped = rescrape_single_scene_episodes(db)
+            if rescraped:
+                existing_pids = {ep['pid'] for ep in episodes_to_process}
+                for ep in rescraped:
+                    if ep['pid'] not in existing_pids:
+                        episodes_to_process.append(ep)
 
-    db = ArchersDatabase()
-    try:
+        if not episodes_to_process:
+            print("No episodes to process.")
+            return
+
+        print(f"Processing {len(episodes_to_process)} episodes...")
+        detailed_episode_data = process_batch(episodes_to_process)
+        print(f"Processing completed in {time.perf_counter() - process_start:.2f}s")
+
+        if not detailed_episode_data:
+            return
+
+        if dry_run:
+            total_scenes = sum(len(ep['scenes']) for ep in detailed_episode_data)
+            dates = [ep['date'] for ep in detailed_episode_data]
+            print(f"\n--- DRY RUN SUMMARY ---")
+            print(f"Episodes to process: {len(detailed_episode_data)}")
+            print(f"Date range: {min(dates)} to {max(dates)}")
+            print(f"Total scenes: {total_scenes}")
+            print(f"Average scenes per episode: {total_scenes / len(detailed_episode_data):.1f}")
+            print(f"Dry run completed in {time.perf_counter() - start_time:.2f}s")
+            return
+
+        upsert_start = time.perf_counter()
         db.add_episodes_with_scenes(detailed_episode_data)
-        db.handle_duplicate_episodes()
+        print(f"Database upsert completed in {time.perf_counter() - upsert_start:.2f}s")
+
+        if from_cache or len(detailed_episode_data) > 10:
+            cleanup_start = time.perf_counter()
+            db.handle_duplicate_episodes()
+            print(f"Cleanup completed in {time.perf_counter() - cleanup_start:.2f}s")
+
+        link_start = time.perf_counter()
         new_pids = [ep['pid'] for ep in detailed_episode_data]
         db.link_all_characters_to_scenes(episode_pids=new_pids)
-    finally:
-        db.close()
+        print(f"Character linking completed in {time.perf_counter() - link_start:.2f}s")
+
+    print(f"\nTotal update time: {time.perf_counter() - start_time:.2f}s")
 
 def main():
     parser = argparse.ArgumentParser(description="Neo4j Ambridge database")
@@ -91,6 +154,7 @@ def main():
 
     update_parser = subparsers.add_parser('update', help='Scrape new episodes or reset from cache')
     update_parser.add_argument('--from-cache', action='store_true', help="Clear and rebuild DB from cache")
+    update_parser.add_argument('--dry-run', action='store_true', help="Run scrape and process steps without database operations")
 
     link_parser = subparsers.add_parser('link', help='Manually link a character to a scene')
     link_parser.add_argument('--scenes', type=str, nargs='+', required=True, help='List of scene IDs (space-separated)')
@@ -106,20 +170,14 @@ def main():
 
     try:
         if args.command == 'update':
-            update_db(args.from_cache)
+            update_db(args.from_cache, dry_run=args.dry_run)
         elif args.command == 'link':
-            db = ArchersDatabase()
-            try:
+            with ArchersDatabase() as db:
                 print(f"Linking character '{args.character}' to scenes...")
                 db.manual_link_character_to_scenes(args.scenes, args.character)
-            finally:
-                db.close()
         elif args.command == 'cleanup':
-            db = ArchersDatabase()
-            try:
+            with ArchersDatabase() as db:
                 db.cleanup_empty_scenes()
-            finally:
-                db.close()
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)

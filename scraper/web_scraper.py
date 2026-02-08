@@ -1,26 +1,46 @@
 import requests
 import re
+import time
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
+MAX_WORKERS = 5
+
 
 class WebScraper:
-    def __init__(self, max_workers=3):
+    def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
         })
-        self.max_workers = max_workers
 
-    def _get_soup(self, url):
-        try:
-            resp = self.session.get(url)
-            resp.raise_for_status()
-            return BeautifulSoup(resp.text, 'html.parser')
-        except Exception as e:
-            print(f"Error fetching {url}: {e}")
-            return None
+    def _get_soup(self, url, max_retries=3, timeout=60):
+        for attempt in range(max_retries):
+            try:
+                resp = self.session.get(url, timeout=timeout)
+                resp.raise_for_status()
+                return BeautifulSoup(resp.text, 'html.parser')
+            except requests.exceptions.Timeout:
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt
+                    print(f"Timeout fetching {url}, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                else:
+                    print(f"Error: Timeout fetching {url} after {max_retries} attempts")
+                    return None
+            except requests.exceptions.RequestException as e:
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt
+                    print(f"Error fetching {url}: {e}, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                else:
+                    print(f"Error fetching {url} after {max_retries} attempts: {e}")
+                    return None
+            except Exception as e:
+                print(f"Unexpected error fetching {url}: {e}")
+                return None
+        return None
 
     def get_episode(self, pid):
         try:
@@ -37,7 +57,7 @@ class WebScraper:
             date = datetime.strptime(date_match.group(1), "%d/%m/%Y").date()
             formatted_date = date.strftime('%Y-%m-%d')
 
-            if date >= datetime.now().date():
+            if date > datetime.now().date():
                 print(f"Ignoring future episode: {formatted_date} (PID: {pid})")
                 return None
 
@@ -68,8 +88,7 @@ class WebScraper:
         all_pids = []
         pages = [f"https://www.bbc.co.uk/programmes/{series_id}/episodes/guide?page={i}" for i in range(first_page, last_page + 1)]
 
-        # Batch 1: Concurrent Page Scraping for PIDs
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             future_to_page = {executor.submit(self._get_soup, url): url for url in pages}
             completed_pages = 0
             for future in as_completed(future_to_page):
@@ -81,12 +100,11 @@ class WebScraper:
 
         print(f"\nFound {len(all_pids)} episode(s) in index")
 
-        # Batch 2: Concurrent Metadata Retrieval
         episodes = []
         unique_pids = list(set(all_pids))
         total_pids = len(unique_pids)
 
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             future_to_pid = {executor.submit(self.get_episode, pid): pid for pid in unique_pids}
             completed_episodes = 0
 

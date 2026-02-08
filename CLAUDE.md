@@ -19,8 +19,9 @@ There is no test framework configured.
 ### Scraper
 
 ```bash
-python scraper/archersscrape.py update              # Scrape new episodes
+python scraper/archersscrape.py update              # Scrape new episodes (auto re-scrapes recent single-scene episodes)
 python scraper/archersscrape.py update --from-cache  # Build DB from cached json file
+python scraper/archersscrape.py update --dry-run     # Scrape and process without database writes
 python scraper/archersscrape.py link --character "Name" --scenes S1 S2  # Manually link character to scenes
 python scraper/archersscrape.py cleanup              # Review and merge empty scenes
 ```
@@ -54,15 +55,17 @@ Constraints: `Episode.pid` is node key, `Scene.id` is node key, `Character.slug`
 Six Python files plus seed data:
 
 - **`archersscrape.py`** — CLI entry point (argparse). Three subcommands: `update`, `link`, `cleanup`. Orchestrates the scrape→process→upsert→link pipeline.
-- **`web_scraper.py`** — `WebScraper` class. Fetches BBC episode listing pages and individual episode pages concurrently via `ThreadPoolExecutor(max_workers=3)`. Two-batch approach: first scrape listing pages for PIDs, then fetch each episode's metadata/blurb.
-- **`processor.py`** — `EpisodeProcessor` class (stateless). Splits episode blurbs into scenes using regex (newlines, transition words like "Meanwhile"/"Back at"). Detects and strips credits/boilerplate. Merges lowercase-starting fragments into previous scenes.
-- **`database.py`** — `ArchersDatabase` class. Neo4j operations: batch episode/scene upserts via `MERGE`, four duplicate cleanup strategies (orphans, exact duplicates, thin repeats, date shifts), and two-pass character-to-scene linking.
+- **`web_scraper.py`** — `WebScraper` class. Fetches BBC episode listing pages and individual episode pages concurrently via `ThreadPoolExecutor(max_workers=5)`. Retry with exponential backoff (3 attempts, 60s timeout). Two-batch approach: first scrape listing pages for PIDs, then fetch each episode's metadata/blurb.
+- **`processor.py`** — Module-level functions (`process_episode`, `process_batch`). Pre-compiled regex constants at module level. Splits episode blurbs into scenes using regex (newlines, transition words like "Meanwhile"/"Back at"). Detects and strips credits/boilerplate. Merges lowercase-starting fragments into previous scenes.
+- **`database.py`** — `ArchersDatabase` class (context manager). Neo4j operations: batch episode/scene upserts via `MERGE` (chunked in batches of 500), four duplicate cleanup strategies (orphans, exact duplicates, thin repeats, date shifts), two-pass character-to-scene linking, and single-scene episode detection for re-scraping.
 - **`queries.py`** — All Cypher query strings as module-level constants (243 lines). The Pass 2 disambiguation query is 135 lines of Cypher handling family scoring, co-habitation, keywords, rival detection, and memorial exclusion.
 - **`cache.py`** — Single `load_cache()` function. Reads cached episode JSON and returns the last cached date.
 
 **Character linking algorithm:** Two-pass approach. Pass 1 links unambiguous characters (no shared aliases) via regex matching against scene text. Pass 2 handles ambiguous characters (shared aliases like "Jack", "Dan", "Justin") using a scoring system: close family in scene (weight 3), co-habitants/co-workers (weight 2), friends (weight 2), distant family (weight 1), contextual keywords (2 per match). Definite matches override scoring (full name in scene/episode, birth/death date match). Rival exclusion prevents linking when a rival's full name appears, or memorial keywords suggest a deceased character is being discussed.
 
-**Known issues:** See `scraper/REFACTORING.md` for documented bugs and planned improvements.
+**Re-scrape:** On incremental updates, recent episodes (last 7 days) with only 1 scene are automatically re-scraped — this catches episodes whose blurbs were incomplete when first scraped. The old episode and scenes are deleted from the DB before re-inserting.
+
+**Performance:** Duplicate cleanup is skipped on small incremental updates (<=10 episodes). Each pipeline phase (scrape, process, upsert, cleanup, linking) prints timing output.
 
 Initial character/location seed data lives in `scraper/import_base_data.txt`. Requires APOC plugin for slug generation during initial setup.
 

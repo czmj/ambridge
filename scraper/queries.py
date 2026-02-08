@@ -118,14 +118,14 @@ WHERE (c)-[:SPOUSE|ROMANTIC_RELATIONSHIP]-(closeRelative)
 
 WITH s, c, e, temporally_active, full_name_in_episode, count(DISTINCT closeRelative) AS close_family
 
-// Count grandparents/grandchildren in scene - weight 2
+// Count grandparents/grandchildren in scene - weight 1
 OPTIONAL MATCH (s)<-[:APPEARS_IN]-(distantRelative:Character)
 WHERE (c)-[:CHILD_OF*2]->(distantRelative)
    OR (distantRelative)-[:CHILD_OF*2]->(c)
 
 WITH s, c, e, temporally_active, full_name_in_episode, close_family, count(DISTINCT distantRelative) AS distant_family
 
-// Count friends in scene - weight 1
+// Count friends in scene - weight 2
 OPTIONAL MATCH (s)<-[:APPEARS_IN]-(friend:Character)
 WHERE (c)-[:FRIEND_OF]-(friend)
 
@@ -239,4 +239,20 @@ MATCH (target:Scene {id: $target_id})
 MATCH (empty:Scene {id: $empty_id})
 SET target.text = target.text + " " + empty.text
 DETACH DELETE empty
+"""
+
+FIND_SINGLE_SCENE_EPISODES = """
+MATCH (s:Scene)-[:PART_OF]->(e:Episode)
+WHERE e.date >= date() - duration({days: 7})
+WITH e, count(s) AS scene_count
+WHERE scene_count = 1
+RETURN e.pid AS pid
+"""
+
+DELETE_EPISODES = """
+MATCH (e:Episode)
+WHERE e.pid IN $pids
+OPTIONAL MATCH (s:Scene)-[:PART_OF]->(e)
+DETACH DELETE s, e
+RETURN count(e) AS count
 """
