@@ -44,16 +44,27 @@ Nodes: `Episode` (pid, date, synopsis), `Scene` (id, order, text), `Character` (
 Key relationships:
 - `Scene -[:PART_OF]-> Episode`
 - `Character -[:APPEARS_IN]-> Scene`
-- `Character -[:SPOUSE|CHILD_OF|SIBLING|ROMANTIC_RELATIONSHIP]- Character`
-- `Character -[:LIVES_AT|WORKS_AT]-> Location` (with temporal `from`/`to` properties)
+- `Character -[:SPOUSE|CHILD_OF|SIBLING|ROMANTIC_RELATIONSHIP|FRIEND_OF]- Character`
+- `Character -[:LIVES_AT|WORKS_AT|OWNS]-> Location` (with temporal `from`/`to` properties)
 
 Constraints: `Episode.pid` is node key, `Scene.id` is node key, `Character.slug` is unique.
 
-### Scraper (`scraper/archersscrape.py`)
+### Scraper (`scraper/`)
 
-Three classes: `WebScraper` (fetches BBC episode pages concurrently), `EpisodeProcessor` (parses blurbs into scenes via regex), `ArchersDatabase` (Neo4j upserts, duplicate handling, character-to-scene linking). Character linking uses a two-pass approach: first unambiguous names, then ambiguous names weighted by relationship proximity (close family=3, distant family=2, cohabitants=2).
+Six Python files plus seed data:
 
-Initial character/location seed data lives in `scraper/import_base_data.txt`.
+- **`archersscrape.py`** — CLI entry point (argparse). Three subcommands: `update`, `link`, `cleanup`. Orchestrates the scrape→process→upsert→link pipeline.
+- **`web_scraper.py`** — `WebScraper` class. Fetches BBC episode listing pages and individual episode pages concurrently via `ThreadPoolExecutor(max_workers=3)`. Two-batch approach: first scrape listing pages for PIDs, then fetch each episode's metadata/blurb.
+- **`processor.py`** — `EpisodeProcessor` class (stateless). Splits episode blurbs into scenes using regex (newlines, transition words like "Meanwhile"/"Back at"). Detects and strips credits/boilerplate. Merges lowercase-starting fragments into previous scenes.
+- **`database.py`** — `ArchersDatabase` class. Neo4j operations: batch episode/scene upserts via `MERGE`, four duplicate cleanup strategies (orphans, exact duplicates, thin repeats, date shifts), and two-pass character-to-scene linking.
+- **`queries.py`** — All Cypher query strings as module-level constants (243 lines). The Pass 2 disambiguation query is 135 lines of Cypher handling family scoring, co-habitation, keywords, rival detection, and memorial exclusion.
+- **`cache.py`** — Single `load_cache()` function. Reads cached episode JSON and returns the last cached date.
+
+**Character linking algorithm:** Two-pass approach. Pass 1 links unambiguous characters (no shared aliases) via regex matching against scene text. Pass 2 handles ambiguous characters (shared aliases like "Jack", "Dan", "Justin") using a scoring system: close family in scene (weight 3), co-habitants/co-workers (weight 2), friends (weight 2), distant family (weight 1), contextual keywords (2 per match). Definite matches override scoring (full name in scene/episode, birth/death date match). Rival exclusion prevents linking when a rival's full name appears, or memorial keywords suggest a deceased character is being discussed.
+
+**Known issues:** See `scraper/REFACTORING.md` for documented bugs and planned improvements.
+
+Initial character/location seed data lives in `scraper/import_base_data.txt`. Requires APOC plugin for slug generation during initial setup.
 
 ## Environment Variables
 
