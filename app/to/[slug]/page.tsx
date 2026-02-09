@@ -1,20 +1,24 @@
-import Timeline from '@/components/Timeline';
-import { Subtitle } from '@/components/Typography';
-import { formatDate } from '@/lib/utils';
-import { notFound } from 'next/navigation';
-import { getCharacterProfile, getTimeline } from '../../actions';
+import FamilyTree from "@/components/FamilyTree";
+import Timeline from "@/components/Timeline";
+import { Subtitle } from "@/components/Typography";
+import { formatDate } from "@/lib/utils";
+import { notFound } from "next/navigation";
+import { getCharacterProfile, getFamilyTree, getTimeline } from "../../actions";
 
 type CharacterPageProps = {
   params: {
-    slug: string
-  },
+    slug: string;
+  };
   searchParams: {
-    sort?: 'asc' | 'desc'
-    page?: string
-  }
-}
+    sort?: "asc" | "desc";
+    page?: string;
+  };
+};
 
-export default async function CharacterPage({ params, searchParams }: CharacterPageProps) {
+export default async function CharacterPage({
+  params,
+  searchParams,
+}: CharacterPageProps) {
   const resolvedParams = await params;
   const resolvedSearch = await searchParams;
   const slug = resolvedParams.slug;
@@ -22,8 +26,11 @@ export default async function CharacterPage({ params, searchParams }: CharacterP
   const page = resolvedSearch.page ? parseInt(resolvedSearch.page) : 1;
   const pageSize = 10;
 
-  const profile = await getCharacterProfile(slug);
-  const { episodes, totalCount } = await getTimeline({ page, pageSize, sort, slug });
+  const [profile, familyData, { episodes, totalCount }] = await Promise.all([
+    getCharacterProfile(slug),
+    getFamilyTree(slug),
+    getTimeline({ page, pageSize, sort, slug }),
+  ]);
 
   if (!profile) {
     notFound();
@@ -34,12 +41,20 @@ export default async function CharacterPage({ params, searchParams }: CharacterP
   return (
     <>
       <header className="mt-12 mb-6 border-b border-gray-200 pb-2">
-        <h1 className="text-4xl mb-2">What happened to <span className="font-bold">{name}</span>?</h1>
+        <h1 className="text-4xl mb-2">
+          What happened to <span className="font-bold">{name}</span>?
+        </h1>
         <Subtitle>
-          {dob ? `Born: ${formatDate(dob)}` : 'Date of Birth Unknown'}
-          {dod ? ` - Died: ${formatDate(dod)}` : ''}
+          {dob ? `Born: ${formatDate(dob)}` : "Date of Birth Unknown"}
+          {dod ? ` - Died: ${formatDate(dod)}` : ""}
         </Subtitle>
       </header>
+
+      {familyData && (
+        <div className="mb-6 border-b border-gray-200 pb-2">
+          <FamilyTree data={familyData} focusSlug={slug} />
+        </div>
+      )}
 
       <Timeline
         episodes={episodes}

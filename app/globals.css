@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "family-chart/styles/family-chart.css";
 
 :root {
   --background: #ffffff;
@@ -15,4 +16,37 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.family-tree-wrapper .f3 {
+  --background-color: var(--background);
+  --text-color: var(--foreground);
+}
+
+.family-tree-wrapper .f3 .link {
+  stroke: var(--color-gray-200);
+  stroke-width: 2;
+}
+
+.family-tree-wrapper .f3 .card-rect {
+  border-radius: calc(var(--spacing) * 2);
+  padding: var(--spacing) calc(var(--spacing) * 2);
+}
+
+.family-tree-wrapper .f3 .card .card-inner {
+  background-color: var(--color-blue-50);
+  outline: 3px solid var(--color-blue-200);
+  color: var(--color-blue-700);
+  transition: all 200ms;
+  row-gap: calc(var(--spacing) * 2);
+}
+
+.family-tree-wrapper .f3 .card-main .card-inner,
+.family-tree-wrapper .f3 .card:hover .card-inner {
+  box-shadow: 0 0 20px 0 var(--color-blue-200);
+  transform: none;
+}
+
+.family-tree-wrapper .f3 .card-inner div:empty {
+  display: none;
 }
