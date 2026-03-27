@@ -10,174 +10,243 @@ MERGE (alice:Character {name: "Alice Aldridge", birth_name: "Alice Margaret Aldr
 MERGE (brian:Character {name: "Brian Aldridge", aliases: ["Brian"], dob: date("1943-11-20"), gender: "Male"})
 MERGE (kate:Character {name: "Kate Madikane", birth_name: "Katherine Victoria Aldridge", aliases: ["Kate"], dob: date("1977-09-30"), gender: "Female"})
 MERGE (phoebe:Character {name: "Phoebe Aldridge", aliases: ["Phoebe"], dob: date("1998-06-28"), gender: "Female"})
+MERGE (lucas:Character {name: "Lucas Madikane", aliases: ["Lucas"], gender: "Male"})
+MERGE (nolly:Character {name: "Noluthando Madikane", aliases: ["Noluthando", "Nolly"], dob: date("2001-01-19"), gender: "Female"})
+MERGE (sipho:Character {name: "Sipho Madikane", aliases: ["Sipho"], dob: date("2007-07-26"), gender: "Male"})
+MERGE (debbie:Character {name: "Debbie Aldridge", birth_name: "Deborah Travers-Macy", aliases: ["Debbie"], dob: date("1970-12-24"), gender: "Female"})
+MERGE (ruairi:Character {name: "Ruairi Donovan", aliases: ["Ruairi"], dob: date("2002-09-17"), gender: "Male"})
+MERGE (siobhan:Character {name: "Siobhan Hathaway", aliases: ["Siobhan", "Siobhán"], dod: date("2007-05-31"), gender: "Female"})
 
 // Archers
 MERGE (tony:Character {name: "Tony Archer", birth_name: "Anthony William Daniel Archer", aliases: ["Tony"], dob: date("1951-02-16"), gender: "Male"})
 MERGE (ben:Character {name: "Ben Archer", birth_name: "Benjamin David Archer", aliases: ["Ben"], dob: date("2002-03-15"), gender: "Male"})
 MERGE (benjamin:Character {name: "Benjamin Archer", birth_name: "Benjamin Francis Archer", dob: date("1797"), dod: date("1864"), gender: "Male"})
-MERGE (christine:Character {name: "Christine Barford", birth_name: "Christine Archer", aliases: ["Christine"], dob: date("1931-12-21"), gender: "Female"})
 MERGE (dan:Character {name: "Daniel Archer", birth_name: "Daniel Archer", dob: date("1896-10-15"), dod: date("1986-04-23"), gender: "Male"})
 MERGE (danielWilliamArcher:Character {name: "Daniel Archer", birth_name: "Daniel William Archer", dob: date("1828"), dod: date("1890"), gender: "Male"})
 MERGE (david:Character {name: "David Archer", birth_name: "David Thomas Archer", aliases: ["David"], dob: date("1959-09-18"), gender: "Male"})
-MERGE (elizabeth:Character {name: "Elizabeth Pargetter", birth_name: "Elizabeth Ann Archer", aliases: ["Elizabeth"], dob: date("1967-04-21"), gender: "Female"})
 MERGE (frank:Character {name: "Frank Archer", dob: date("1900-06-01"), dod: date("1957-05-30"), gender: "Male"})
 MERGE (helen:Character {name: "Helen Archer", aliases: ["Helen"], dob: date("1979-04-16"), gender: "Female"})
 MERGE (jackASr:Character {name: "Jack Archer", dob: date("1922-12-17"), dod: date("1972-01-12"), gender: "Male"})
 MERGE (jennifer:Character {name: "Jennifer Aldridge", birth_name: "Jennifer Elizabeth Archer", aliases: ["Jennifer", "Jenny"], dob: date("1945-01-07"), dod: date("2023-01-22"), gender: "Female"})
 MERGE (johnSr:Character {name: "John Archer", dob: date("1858"), dod: date("1924"), gender: "Male"})
 MERGE (johnBenjamin:Character {name: "John Archer", birth_name: "John Benjamin Archer", dob: date("1898-05-27"), dod: date("1972-08-02"), gender: "Male"})
-MERGE (john:Character {name: "John Archer", birth_name: "John Daniel Archer", aliases: ["John"], dob: date("1975-12-31"), dod: date("1998-02-25"), gender: "Male"})
+MERGE (john:Character {name: "John Archer", birth_name: "John Daniel Archer", dob: date("1975-12-31"), dod: date("1998-02-25"), gender: "Male"})
 MERGE (josh:Character {name: "Josh Archer", birth_name: "Joshua Mathew Archer", aliases: ["Josh"], dob: date("1997-09-13"), gender: "Male"})
 MERGE (kenton:Character {name: "Kenton Archer", birth_name: "Kenton Edward Archer", aliases: ["Kenton"], dob: date("1958-08-08"), gender: "Male"})
-MERGE (lilian:Character {name: "Lilian Bellamy", birth_name: "Lilian Archer", aliases: ["Lilian", "Lillian"], dob: date("1947-07-08"), gender: "Female"})
 MERGE (meriel:Character {name: "Meriel Archer", aliases:["Meriel"], dob: date("2001-05-11"), gender: "Female"})
 MERGE (mrsPhoebe:Character {name: "Phoebe Archer", dod: date("1923-04-25"), gender: "Female"})
 MERGE (phil:Character {name: "Phil Archer", birth_name: "Philip Walter Archer", aliases: ["Phil"], dob: date("1928-04-23"), dod: date("2010-02-12"), gender: "Male"})
 MERGE (pip:Character {name: "Pip Archer", birth_name: "Philippa Rose Archer", aliases: ["Pip", "Phiz"], dob: date("1993-02-17"), gender: "Female"})
 MERGE (shula:Character {name: "Shula Hebden Lloyd", birth_name: "Shula Mary Archer", aliases: ["Shula"], dob: date("1958-08-08"), gender: "Female"})
 MERGE (tom:Character {name: "Tom Archer", aliases: ["Tom"], dob: date("1981-02-25"), gender: "Male"})
+MERGE (doris:Character {name: "Doris Archer", birth_name: "Doris Forrest", dob: date("1900-07-11"), dod: date("1980-10-27"), gender: "Female", notes: "DOB disputed: some sources give 1897, which would make her 82 at death rather than 80"})
+MERGE (jill:Character {name: "Jill Archer", birth_name: "Jill Patterson", aliases: ["Jill"], dob: date("1930-10-03"), gender: "Female"})
+MERGE (pat:Character {name: "Pat Archer", birth_name: "Patricia Lewis", aliases: ["Pat"], dob: date("1952-01-10"), gender: "Female"})
+MERGE (ruth:Character {name: "Ruth Archer", birth_name: "Ruth Pritchard", aliases: ["Ruth"], dob: date("1968-06-16"), gender: "Female"})
+MERGE (natasha:Character {name: "Natasha Archer", aliases: ["Natasha"], dob: date("1982-03-08"), gender: "Female"})
+MERGE (jolene:Character {name: "Jolene Archer", aliases: ["Jolene"], gender: "Female"})
+MERGE (henry:Character {name: "Henry Archer", aliases: ["Henry"], dob: date("2011-01-02"), gender: "Male"})
+MERGE (jackA:Character {name: "Jack Archer", birth_name: "Gideon Titchener", aliases: ["Jack", "Gideon"], dob: date("2016-05-21"), gender: "Male", keywords: ["custody", "access"]})
+MERGE (rosie:Character {name: "Rosie Archer", aliases: ["Rosie"], dob: date("2018-05-13"), gender: "Female"})
+MERGE (nova:Character {name: "Nova Archer", aliases: ["Nova"], dob: date("2022-07-22"), gender: "Female"})
+MERGE (seren:Character {name: "Seren Archer", aliases: ["Seren"], dob: date("2022-07-22"), gender: "Female"})
+MERGE (laura:Character {name: "Laura Archer", birth_name: "Laura Wilson", dob: date("1911-08-28"), dod: date("1985-02-14"), gender: "Female"})
 
 // Barford
-// Bellamy
-// Bracken
-// Burton
-// Carey
-// Carter
-// Delamain
+MERGE (georgeBarford:Character {name: "George Barford", birth_name: "George Randall Barford", dob: date("1928-10-24"), dod: date("2005-01-17"), gender: "Male"})
+MERGE (christine:Character {name: "Christine Barford", birth_name: "Christine Archer", aliases: ["Christine"], dob: date("1931-12-21"), gender: "Female"})
 
-MERGE (abbie:Character {name: "Abbie Tucker", aliases: ["Abbie"], dob: date("2008-03-07"), gender: "Female"})
-MERGE (adam:Character {name: "Adam Macy", aliases: ["Adam"], dob: date("1967-06-22"), gender: "Male"})
-MERGE (akram:Character {name: "Akram Malik", aliases: ["Akram"], gender: "Male"})
-MERGE (xander:Character {name: "Xander Macy-Craig", aliases: ["Xander"], dob: date("2019-09-24"), gender: "Male"})
+// Bellamy
+MERGE (ralphBellamy:Character {name: "Ralph Bellamy", dob: date("1925-02-26"), dod: date("1980-01-18"), gender: "Male"})
+MERGE (lilian:Character {name: "Lilian Bellamy", birth_name: "Lilian Archer", aliases: ["Lilian", "Lillian"], dob: date("1947-07-08"), gender: "Female"})
+MERGE (james:Character {name: "James Bellamy", aliases: ["James"], dob: date("1973-03-30"), gender: "Male"})
+
+// Carter
+MERGE (neil:Character {name: "Neil Carter", aliases: ["Neil"], dob: date("1957-05-22"), gender: "Male"})
+MERGE (susan:Character {name: "Susan Carter", birth_name: "Susan Horrobin", aliases: ["Susan"], dob: date("1963-10-10"), gender: "Female"})
+MERGE (chris:Character {name: "Christopher Carter", aliases: ["Chris", "Christopher"], dob: date("1988-06-22"), gender: "Male"})
+MERGE (martha:Character {name: "Martha Carter", aliases: ["Martha"], dob: date("2021-02-15"), gender: "Female"})
+
+// Fairbrother
+MERGE (grace:Character {name: "Grace Archer", birth_name: "Grace Fairbrother", dob: date("1930-09-28"), dod: date("1955-09-22"), gender: "Female"})
+MERGE (rex:Character {name: "Rex Fairbrother", aliases: ["Rex"], gender: "Male"})
+MERGE (toby:Character {name: "Toby Fairbrother", aliases: ["Toby"], gender: "Male"})
+
+// Forrest
+MERGE (williamForrest:Character {name: "William Forrest", gender: "Male"})
+MERGE (lisaForrest:Character {name: "Lisa Forrest", birth_name: "Lisa Hart", dob: date("1875"), dod: date("1931"), gender: "Female"})
+MERGE (tomForrest:Character {name: "Tom Forrest", birth_name: "Thomas William Forrest", dob: date("1910-10-20"), dod: date("1998-11-05"), gender: "Male"})
+MERGE (pruForrest:Character {name: "Pru Forrest", birth_name: "Prudence Harris", dob: date("1921-07-27"), dod: date("1998-11-11"), gender: "Female"})
+MERGE (tedForrest:Character {name: "Ted Forrest", birth_name: "Edward George Forrest", dob: date("1902-01-10"), dod: date("1920-01-17"), gender: "Male"})
+
+// Franks
 MERGE (alan:Character {name: "Alan Franks", aliases: ["Alan"], gender: "Male"})
-MERGE (alistair:Character {name: "Alistair Lloyd", aliases: ["Alistair", "Alastair"], dob: date("1962-09-14"), gender: "Male"})
-MERGE (amber:Character {name: "Amber Gordon", aliases: ["Amber"], gender: "Female"})
+MERGE (usha:Character {name: "Usha Franks", aliases: ["Usha"], dob: date("1962-06-17"), gender: "Female"})
 MERGE (amy:Character {name: "Amy Franks", aliases: ["Amy"], gender: "Female"})
-MERGE (azra:Character {name: "Azra Malik", aliases: ["Azra", "Dr Malik"], gender: "Female"})
+
+// Fry
 MERGE (bert:Character {name: "Bert Fry", aliases: ["Bert"], dob: date("1936-06-07"), dod: date("2021-10-25"), gender: "Male", keywords: ["tractor", "allotment", "poem", "poetry", "Flower & Produce", "veg"]})
 MERGE (freda:Character {name: "Freda Fry", aliases: ["Freda"], dod: date("2015-03-13"), gender: "Female"})
-MERGE (bertH:Character {name: "Bert Horrobin", aliases: ["Bert"], first_appearance: date("2011-10-31"), gender: "Male"})
-MERGE (brad:Character {name: "Brad Horrobin", aliases: ["Brad"], gender: "Male"})
-MERGE (bruce:Character {name: "Bruce Titchener", aliases: ["Bruce"], gender: "Male"})
-MERGE (carly:Character {name: "Carly", aliases: ["Carly"], gender: "Female"})
-MERGE (caroline:Character {name: "Caroline Sterling", aliases: ["Caroline"], dob: date("1955-06-03"), dod: date("2018-10-01"), gender: "Female"})
-MERGE (chelsea:Character {name: "Chelsea Horrobin", aliases: ["Chelsea"], gender: "Female"})
-MERGE (chris:Character {name: "Christopher Carter", aliases: ["Chris", "Christopher"], dob: date("1988-06-22"), gender: "Male"})
-MERGE (clarrie:Character {name: "Clarrie Grundy", aliases: ["Clarrie"], dob: date("1954-05-12"), gender: "Female"})
-MERGE (clive:Character {name: "Clive Horrobin", aliases: ["Clive"], dob: date("1972-11-09"), gender: "Male"})
-MERGE (coriander:Character {name: "Coriander Snell", aliases: ["Caz", "Coriander"], gender: "Female"})
-MERGE (danH:Character {name: "Dan Hebden Lloyd", aliases: ["Dan", "Daniel"], dob: date("1994-11-14"), gender: "Male"})
-MERGE (debbie:Character {name: "Debbie Aldridge", aliases: ["Debbie"], dob: date("1970-12-24"), gender: "Female"})
-MERGE (doris:Character {name: "Doris Archer", dob: date("1900-07-11"), dod: date("1980-10-27"), gender: "Female", notes: "DOB disputed: some sources give 1897, which would make her 82 at death rather than 80"})
-MERGE (ed:Character {name: "Ed Grundy", aliases: ["Ed"], dob: date("1984-09-28"), gender: "Male"})
+
+// Gabriel
+MERGE (walter:Character {name: "Walter Gabriel", dob: date("1896-08-25"), dod: date("1988-11-03"), gender: "Male"})
+MERGE (annieG:Character {name: "Annie Gabriel", gender: "Female"})
+MERGE (nelson:Character {name: "Nelson Gabriel", dob: date("1933"), dod: date("2001"), gender: "Male"})
+
+// Grundy
+MERGE (joe:Character {name: "Joe Grundy", aliases: ["Joe"], dob: date("1921-09-18"), dod: date("2019-10-10"), gender: "Male"})
 MERGE (eddie:Character {name: "Eddie Grundy", aliases: ["Eddie"], dob: date("1951-03-15"), gender: "Male"})
-MERGE (emma:Character {name: "Emma Grundy", aliases: ["Emma"], dob: date("1984-08-07"), gender: "Female"})
-MERGE (esme:Character {name: "Esme Mulligan", aliases: ["Esme"], gender: "Female"})
-MERGE (fallon:Character {name: "Fallon Rogers", aliases: ["Fallon"], dob: date("1985-06-19"), gender: "Female"})
-MERGE (freddie:Character {name: "Freddie Pargetter", aliases: ["Freddie"], dob: date("1999-12-12"), gender: "Male"})
+MERGE (clarrie:Character {name: "Clarrie Grundy", birth_name: "Clarrie Larkin", aliases: ["Clarrie"], dob: date("1954-05-12"), gender: "Female"})
+MERGE (will:Character {name: "Will Grundy", aliases: ["Will"], dob: date("1983-02-09"), gender: "Male"})
+MERGE (ed:Character {name: "Ed Grundy", aliases: ["Ed"], dob: date("1984-09-28"), gender: "Male"})
+MERGE (emma:Character {name: "Emma Grundy", birth_name: "Emma Carter", aliases: ["Emma"], dob: date("1984-08-07"), gender: "Female"})
+MERGE (nic:Character {name: "Nic Grundy", aliases: ["Nic"], dod: date("2018-02-01"), gender: "Female"})
 MERGE (george:Character {name: "George Grundy", aliases: ["George"], dob: date("2005-02-15"), gender: "Male"})
-MERGE (grace:Character {name: "Grace Archer", aliases: ["Grace"], dod: date("1955-09-22"), gender: "Female"})
+MERGE (keira:Character {name: "Keira Grundy", aliases: ["Keira"], dob: date("2011-04-06"), gender: "Female"})
+MERGE (poppy:Character {name: "Poppy Grundy", aliases: ["Poppy"], dob: date("2013-09-30"), gender: "Female"})
+MERGE (mia:Character {name: "Mia Grundy", aliases: ["Mia"], dob: date("2004-12-01"), gender: "Female"})
+MERGE (susanG:Character {name: "Susan Grundy", dod: date("1969"), gender: "Female"})
+MERGE (alfG:Character {name: "Alf Grundy", birth_name: "Alfred George Grundy", aliases: ["Alf"], dob: date("1944-11-13"), gender: "Male"})
+
+// Hebden
+MERGE (markH:Character {name: "Mark Hebden", dob: date("1955-02-20"), dod: date("1994-02-17"), gender: "Male"})
+MERGE (danH:Character {name: "Dan Hebden Lloyd", aliases: ["Dan", "Daniel"], dob: date("1994-11-14"), gender: "Male"})
+
+// Horrobin
+MERGE (bertH:Character {name: "Bert Horrobin", aliases: ["Bert"], first_appearance: date("2011-10-31"), gender: "Male"})
+MERGE (ivy:Character {name: "Ivy Horrobin", aliases: ["Ivy"], dod: date("2011-11-01"), gender: "Female"})
+MERGE (clive:Character {name: "Clive Horrobin", aliases: ["Clive"], dob: date("1972-11-09"), gender: "Male"})
+MERGE (keith:Character {name: "Keith Horrobin", aliases: ["Keith"], dob: date("1964-12-01"), gender: "Male"})
+MERGE (garyH:Character {name: "Gary Horrobin", aliases: ["Gary"], dob: date("1974-07-15"), gender: "Male"})
+MERGE (stewart:Character {name: "Stewart Horrobin", aliases: ["Stewart"], dob: date("1965-08-01"), gender: "Male"})
+MERGE (tracy:Character {name: "Tracy Horrobin", aliases: ["Tracy"], dob: date("1975-07-16"), gender: "Female"})
+MERGE (brad:Character {name: "Brad Horrobin", aliases: ["Brad"], gender: "Male"})
+MERGE (chelsea:Character {name: "Chelsea Horrobin", aliases: ["Chelsea"], gender: "Female"})
+MERGE (jazzer:Character {name: "Jazzer McCreary", aliases: ["Jazzer"], gender: "Male"})
+
+// Johnson
+MERGE (paulJ:Character {name: "Paul Johnson", dob: date("1931-01-10"), dod: date("1978-05-10"), gender: "Male"})
+MERGE (peterJ:Character {name: "Peter Johnson", dob: date("1965-09-05"), gender: "Male"})
+
+// Larkin
+MERGE (nedL:Character {name: "Ned Larkin", dod: date("1967"), gender: "Male"})
+MERGE (mabelL:Character {name: "Mabel Larkin", birth_name: "Mabel Bracken", dod: date("1983"), gender: "Female"})
+MERGE (jethroL:Character {name: "Jethro Larkin", dob: date("1924-08-28"), dod: date("1987-06-17"), gender: "Male"})
+MERGE (lizzieL:Character {name: "Lizzie Larkin", dod: date("1981-09-18"), gender: "Female"})
+MERGE (susanLarkin:Character {name: "Susan Larkin", gender: "Female"})
+MERGE (rosieM:Character {name: "Rosie Mabbott", birth_name: "Rosie Larkin", dob: date("1951-09-14"), gender: "Female"})
+
+// Lloyd
+MERGE (jim:Character {name: "Jim Lloyd", aliases: ["Jim", "Professor Lloyd"], gender: "Male"})
+MERGE (alistair:Character {name: "Alistair Lloyd", aliases: ["Alistair", "Alastair"], dob: date("1962-09-14"), gender: "Male"})
+
+// Macy-Craig
+MERGE (adam:Character {name: "Adam Macy", aliases: ["Adam"], dob: date("1967-06-22"), gender: "Male"})
+MERGE (ian:Character {name: "Ian Craig", aliases: ["Ian"], gender: "Male"})
+MERGE (xander:Character {name: "Xander Macy-Craig", aliases: ["Xander"], dob: date("2019-09-24"), gender: "Male"})
+
+// Malik
+MERGE (akram:Character {name: "Akram Malik", aliases: ["Akram"], gender: "Male"})
+MERGE (azra:Character {name: "Azra Malik", aliases: ["Azra", "Dr Malik"], gender: "Female"})
+MERGE (khalil:Character {name: "Khalil Malik", aliases: ["Khalil"], gender: "Male"})
+MERGE (zainab:Character {name: "Zainab Malik", aliases: ["Zainab"], gender: "Female"})
+
+// Pargetter
+MERGE (nigel:Character {name: "Nigel Pargetter", aliases: ["Nigel"], dob: date("1959-06-08"), dod: date("2011-01-02"), gender: "Male"})
+MERGE (elizabeth:Character {name: "Elizabeth Pargetter", birth_name: "Elizabeth Ann Archer", aliases: ["Elizabeth"], dob: date("1967-04-21"), gender: "Female"})
+MERGE (freddie:Character {name: "Freddie Pargetter", aliases: ["Freddie"], dob: date("1999-12-12"), gender: "Male"})
+MERGE (lily:Character {name: "Lily Pargetter", aliases: ["Lily"], dob: date("1999-12-12"), gender: "Female"})
+
+// Perkins
+MERGE (albertP:Character {name: "Albert Perkins", gender: "Male"})
+MERGE (pollyP:Character {name: "Polly Perkins", dob: date("1905-03-06"), dod: date("1991-05-03"), gender: "Female"})
+MERGE (arthurP:Character {name: "Arthur Perkins", dod: date("1968-12-04"), gender: "Male"})
+
+// Perks
+MERGE (sid:Character {name: "Sid Perks", aliases: ["Sid"], dob: date("1944-06-09"), dod: date("2010-06-08"), gender: "Male"})
+MERGE (pollyMead:Character {name: "Polly Perks", birth_name: "Polly Mead", dob: date("1943-05-15"), dod: date("1982-02-10"), gender: "Female"})
+MERGE (kathy:Character {name: "Kathy Perks", birth_name: "Kathy Holland", aliases: ["Kathy"], dob: date("1953-01-30"), gender: "Female"})
+MERGE (lucyP:Character {name: "Lucy Perks", aliases: ["Lucy"], dob: date("1971-12-12"), gender: "Female"})
+MERGE (jamie:Character {name: "Jamie Perks", aliases: ["Jamie"], dob: date("1995-07-20"), gender: "Male"})
+
+// Richards
+MERGE (sharon:Character {name: "Sharon Richards", aliases: ["Sharon"], dob: date("1972-03-07"), gender: "Female"})
+MERGE (kylie:Character {name: "Kylie Richards", aliases: ["Kylie"], gender: "Female"})
+MERGE (johnny:Character {name: "Johnny Phillips", aliases: ["Johnny", "Rich"], dob: date("1998-08-01"), gender: "Male"})
+
+// Snell
+MERGE (robert:Character {name: "Robert Snell", aliases: ["Robert"], dob: date("1943-04-05"), gender: "Male"})
+MERGE (lynda:Character {name: "Lynda Snell", aliases: ["Lynda"], dob: date("1947-05-29"), gender: "Female"})
+MERGE (leonie:Character {name: "Leonie Snell", aliases: ["Leonie"], gender: "Female"})
+MERGE (coriander:Character {name: "Coriander Snell", aliases: ["Caz", "Coriander"], gender: "Female"})
+
+// Sterling
+MERGE (oliver:Character {name: "Oliver Sterling", aliases: ["Oliver"], gender: "Male"})
+MERGE (caroline:Character {name: "Caroline Sterling", aliases: ["Caroline"], dob: date("1955-06-03"), dod: date("2018-10-01"), gender: "Female"})
+
+// Titchener
+MERGE (bruce:Character {name: "Bruce Titchener", aliases: ["Bruce"], gender: "Male"})
+MERGE (ursula:Character {name: "Ursula Titchener", aliases: ["Ursula"], gender: "Female"})
+MERGE (rob:Character {name: "Rob Titchener", aliases: ["Rob"], dod: date("2023-11-19"), gender: "Male"})
+MERGE (miles:Character {name: "Miles Titchener", aliases: ["Miles"], gender: "Male"})
+
+// Tucker
+MERGE (mike:Character {name: "Mike Tucker", aliases: ["Mike"], dob: date("1949-12-01"), gender: "Male"})
+MERGE (bettyT:Character {name: "Betty Tucker", dob: date("1950-08-04"), dod: date("2005-12-16"), gender: "Female"})
+MERGE (vicky:Character {name: "Vicky Tucker", aliases: ["Vicky"], gender: "Female"})
+MERGE (roy:Character {name: "Roy Tucker", aliases: ["Roy"], dob: date("1978-02-02"), gender: "Male"})
+MERGE (hayley:Character {name: "Hayley Tucker", birth_name: "Hayley Jorden", aliases: ["Hayley"], dob: date("1977"), gender: "Female"})
+MERGE (brenda:Character {name: "Brenda Tucker", aliases: ["Brenda"], dob: date("1981-01-21"), gender: "Female"})
+MERGE (abbie:Character {name: "Abbie Tucker", aliases: ["Abbie"], dob: date("2008-03-07"), gender: "Female"})
+MERGE (bethany:Character {name: "Bethany Tucker", aliases: ["Bethany"], dob: date("2013-01-16"), gender: "Female"})
+
+// Woolley
+MERGE (jackW:Character {name: "Jack Woolley", aliases: ["Jack"], dob: date("1919-07-19"), dod: date("2014-01-02"), gender: "Male", keywords: ["Grey Gables", "Laurels", "dementia"]})
+MERGE (valerie:Character {name: "Valerie Grayson", dod: date("1983-08-01"), gender: "Female"})
+MERGE (peggy:Character {name: "Peggy Woolley", birth_name: "Margaret Perkins", aliases: ["Peggy"], dob: date("1924-11-13"), dod: date("2025-05-08"), gender: "Female"})
+MERGE (hazel:Character {name: "Hazel Woolley", aliases: ["Hazel"], gender: "Female"})
+
+// Misc
+MERGE (amber:Character {name: "Amber Gordon", aliases: ["Amber"], gender: "Female"})
+MERGE (annette:Character {name: "Annette Turner", aliases: ["Annette"], gender: "Female"})
+MERGE (blake:Character {name: "Blake Goddard", aliases: ["Blake"], gender: "Male"})
+MERGE (carol:Character {name: "Carol Tregorran", aliases: ["Carol"], gender: "Female"})
+MERGE (carly:Character {name: "Carly", aliases: ["Carly"], gender: "Female"})
+MERGE (chuck:Character {name: "Chuck", aliases: ["Chuck"], gender: "Male"})
+MERGE (darrell:Character {name: "Darrell Makepeace", aliases: ["Darrell"], gender: "Male"})
+MERGE (esme:Character {name: "Esme Mulligan", aliases: ["Esme"], gender: "Female"})
+MERGE (faith:Character {name: "Faith", aliases: ["Faith"], gender: "Female"})
+MERGE (fallon:Character {name: "Fallon Rogers", aliases: ["Fallon"], dob: date("1985-06-19"), gender: "Female"})
+MERGE (gavin:Character {name: "Gavin Moss", aliases: ["Gavin"], gender: "Male"})
+MERGE (greg:Character {name: "Greg Turner", dod: date("2004-05-07"), gender: "Male"})
 MERGE (hannah:Character {name: "Hannah Riley", aliases: ["Hannah"], gender: "Female"})
 MERGE (harrison:Character {name: "Harrison Burns", aliases: ["Harrison", "PC Burns"], gender: "Male"})
-MERGE (henry:Character {name: "Henry Archer", aliases: ["Henry"], dob: date("2011-01-02"), gender: "Male"})
-MERGE (ian:Character {name: "Ian Craig", aliases: ["Ian"], gender: "Male"})
-MERGE (ivy:Character {name: "Ivy Horrobin", aliases: ["Ivy"], dod: date("2011-11-01"), gender: "Female"})
-MERGE (jackA:Character {name: "Jack Archer", birth_name: "Gideon Titchener", aliases: ["Jack", "Gideon"], dob: date("2016-05-21"), gender: "Male", keywords: ["custody", "access"]})
-MERGE (jackW:Character {name: "Jack Woolley", aliases: ["Jack"], dob: date("1919-07-19"), dod: date("2014-01-02"), gender: "Male", keywords: ["Grey Gables", "Laurels", "dementia"]})
 MERGE (jakob:Character {name: "Jakob Hakansson", aliases: ["Jakob"], gender: "Male"})
-MERGE (james:Character {name: "James Bellamy", aliases: ["James"], dob: date("1973-03-30"), gender: "Male"})
-MERGE (jazzer:Character {name: "Jazzer McCreary", aliases: ["Jazzer"], gender: "Male"})
-MERGE (jill:Character {name: "Jill Archer", aliases: ["Jill"], dob: date("1930-10-03"), gender: "Female"})
-MERGE (jim:Character {name: "Jim Lloyd", aliases: ["Jim", "Professor Lloyd"], gender: "Male"})
-MERGE (joe:Character {name: "Joe Grundy", aliases: ["Joe"], dob: date("1921-09-18"), dod: date("2019-10-10"), gender: "Male"})
-MERGE (johnny:Character {name: "Johnny Phillips", aliases: ["Johnny", "Rich"], dob: date("1998-08-01"), gender: "Male"})
-MERGE (jolene:Character {name: "Jolene Archer", aliases: ["Jolene"], gender: "Female"})
 MERGE (joy:Character {name: "Joy Horville", aliases: ["Joy"], gender: "Female"})
 MERGE (justinElliott:Character {name: "Justin Elliott", aliases: ["Justin", "Justin Elliot"], first_appearance: date("2014-04-09"), gender: "Male", keywords: ["BL", "Borchester Land", "rewilding", "Board"]})
 MERGE (justinBamford:Character {name: "Justin Bamford", aliases: ["Justin"], last_appearance: date("2010-12-30"), gender: "Male"})
-MERGE (keith:Character {name: "Keith Horrobin", aliases: ["Keith"], dob: date("1964-12-01"), gender: "Male"})
-MERGE (keira:Character {name: "Keira Grundy", aliases: ["Keira"], dob: date("2011-04-06"), gender: "Female"})
-MERGE (khalil:Character {name: "Khalil Malik", aliases: ["Khalil"], gender: "Male"})
 MERGE (kirsty:Character {name: "Kirsty Miller", aliases: ["Kirsty"], dob: date("1981-05-05"), gender: "Female"})
-MERGE (kylie:Character {name: "Kylie Richards", aliases: ["Kylie"], gender: "Female"})
 MERGE (lawrence:Character {name: "Lawrence Harrington", aliases: ["Lawrence"], gender: "Male"})
 MERGE (lee:Character {name: "Lee Bryce", aliases: ["Lee"], gender: "Male"})
-MERGE (leonie:Character {name: "Leonie Snell", aliases: ["Leonie"], gender: "Female"})
 MERGE (leonard:Character {name: "Leonard Berry", aliases: ["Leonard"], gender: "Male"})
-MERGE (lily:Character {name: "Lily Pargetter", aliases: ["Lily"], dob: date("1999-12-12"), gender: "Female"})
-MERGE (lottie:Character {name: "Lottie", aliases: ["Lottie"], gender: "Female"})
-MERGE (lynda:Character {name: "Lynda Snell", aliases: ["Lynda"], dob: date("1947-05-29"), gender: "Female"})
-MERGE (marjorie:Character {name: "Marjorie Antrobus", aliases: ["Marjorie"], dod: date("2008-05-20"), gender: "Female"})
-MERGE (markH:Character {name: "Mark Hebden", aliases: ["Mark"], dob: date("1955-02-20"), dod: date("1994-02-17"), gender: "Male"})
-MERGE (markie:Character {name: "Markie", aliases: ["Markie"], gender: "Male"})
-MERGE (martha:Character {name: "Martha Carter", aliases: ["Martha"], dob: date("2021-02-15"), gender: "Female"})
-MERGE (martyn:Character {name: "Martyn Gibson", aliases: ["Martyn"], gender: "Male"})
-MERGE (mia:Character {name: "Mia Grundy", aliases: ["Mia"], dob: date("2004-12-01"), gender: "Female"})
-MERGE (mick:Character {name: "Mick Fadmoor", aliases: ["Mick"], gender: "Male"})
-MERGE (mike:Character {name: "Mike Tucker", aliases: ["Mike"], dob: date("1949-12-01"), gender: "Male"})
-MERGE (miles:Character {name: "Miles Titchener", aliases: ["Miles"], gender: "Male"})
-MERGE (miranda:Character {name: "Miranda Elliott", aliases: ["Miranda"], gender: "Female"})
-MERGE (natasha:Character {name: "Natasha Archer", aliases: ["Natasha"], dob: date("1982-03-08"), gender: "Female"})
-MERGE (neil:Character {name: "Neil Carter", aliases: ["Neil"], dob: date("1957-05-22"), gender: "Male"})
-MERGE (neville:Character {name: "Neville Booth", aliases: ["Neville", "Mr Booth"], gender: "Male"})
-MERGE (nic:Character {name: "Nic Grundy", aliases: ["Nic"], dod: date("2018-02-01"), gender: "Female"})
-MERGE (nigel:Character {name: "Nigel Pargetter", aliases: ["Nigel"], dob: date("1959-06-08"), dod: date("2011-01-02"), gender: "Male"})
-MERGE (oliver:Character {name: "Oliver Sterling", aliases: ["Oliver"], gender: "Male"})
-MERGE (oscar:Character {name: "Oscar Bamford", aliases: ["Oscar"], gender: "Male"})
-MERGE (pat:Character {name: "Pat Archer", aliases: ["Pat"], dob: date("1952-01-10"), gender: "Female"})
-MERGE (paul:Character {name: "Paul Mack", aliases: ["Paul"], gender: "Male"})
-MERGE (peggy:Character {name: "Peggy Woolley", aliases: ["Peggy"], dob: date("1924-11-13"), dod: date("2025-05-08"), gender: "Female"})
-MERGE (poppy:Character {name: "Poppy Grundy", aliases: ["Poppy"], dob: date("2013-09-30"), gender: "Female"})
-MERGE (rex:Character {name: "Rex Fairbrother", aliases: ["Rex"], gender: "Male"})
-MERGE (rob:Character {name: "Rob Titchener", aliases: ["Rob"], dod: date("2023-11-19"), gender: "Male"})
-MERGE (robert:Character {name: "Robert Snell", aliases: ["Robert"], dob: date("1943-04-05"), gender: "Male"})
-MERGE (rochelle:Character {name: "Rochelle", aliases: ["Rochelle"], gender: "Female"})
-MERGE (rosie:Character {name: "Rosie Archer", aliases: ["Rosie"], dob: date("2018-05-13"), gender: "Female"})
-MERGE (ruairi:Character {name: "Ruairi Donovan", aliases: ["Ruairi"], dob: date("2002-09-17"), gender: "Male"})
-MERGE (ruth:Character {name: "Ruth Archer", aliases: ["Ruth"], dob: date("1968-06-16"), gender: "Female"})
-MERGE (sharon:Character {name: "Sharon Richards", aliases: ["Sharon"], dob: date("1972-03-07"), gender: "Female"})
-MERGE (siobhan:Character {name: "Siobhan Hathaway", aliases: ["Siobhan", "Siobhán"], dod: date("2007-05-31"), gender: "Female"})
-MERGE (stella:Character {name: "Stella Pryor", aliases: ["Stella"], gender: "Female"})
-MERGE (stewart:Character {name: "Stewart Horrobin", aliases: ["Stewart"], gender: "Male"})
-MERGE (susan:Character {name: "Susan Carter", aliases: ["Susan"], dob: date("1963-10-10"), gender: "Female"})
-MERGE (toby:Character {name: "Toby Fairbrother", aliases: ["Toby"], gender: "Male"})
-MERGE (tracy:Character {name: "Tracy Horrobin", aliases: ["Tracy"], dob: date("1975-07-16"), gender: "Female"})
-MERGE (ursula:Character {name: "Ursula Titchener", aliases: ["Ursula"], gender: "Female"})
-MERGE (usha:Character {name: "Usha Franks", aliases: ["Usha"], dob: date("1962-06-17"), gender: "Female"})
-MERGE (vince:Character {name: "Vince Casey", aliases: ["Vince"], gender: "Male"})
-MERGE (will:Character {name: "Will Grundy", aliases: ["Will"], dob: date("1983-02-09"), gender: "Male"})
-MERGE (zainab:Character {name: "Zainab Malik", aliases: ["Zainab"], gender: "Female"})
-MERGE (roy:Character {name: "Roy Tucker", aliases: ["Roy"], dob: date("1978-02-02"), gender: "Male"})
-MERGE (hayley:Character {name: "Hayley Tucker", aliases: ["Hayley"], gender: "Female"})
-MERGE (philip:Character {name: "Philip Moss", aliases: ["Phillip", "Philip"], gender: "Male"})
-MERGE (garyH:Character {name: "Gary Horrobin", aliases: ["Gary"], gender: "Male"})
-MERGE (gavin:Character {name: "Gavin Moss", aliases: ["Gavin"], gender: "Male"})
-MERGE (blake:Character {name: "Blake Goddard", aliases: ["Blake"], gender: "Male"})
-MERGE (darrell:Character {name: "Darrell Makepeace", aliases: ["Darrell"], gender: "Male"})
-MERGE (vicky:Character {name: "Vicky Tucker", aliases: ["Vicky"], gender: "Female"})
-MERGE (carol:Character {name: "Carol Tregorran", aliases: ["Carol"], gender: "Female"})
-MERGE (bethany:Character {name: "Bethany Tucker", aliases: ["Bethany"], dob: date("2013-01-16"), gender: "Female"})
-MERGE (brenda:Character {name: "Brenda Tucker", aliases: ["Brenda"], dob: date("1981-01-21"), gender: "Female"})
-MERGE (matt:Character {name: "Matt Crawford", aliases: ["Matt"], dob: date("1947-08-07"), gender: "Male"})
-MERGE (lucas:Character {name: "Lucas Madikane", aliases: ["Lucas"], gender: "Male"})
-MERGE (nolly:Character {name: "Noluthando Madikane", aliases: ["Noluthando", "Nolly"], dob: date("2001-01-19"), gender: "Female"})
-MERGE (sipho:Character {name: "Sipho Madikane", aliases: ["Sipho"], dob: date("2007-07-26"), gender: "Male"})
-MERGE (jamie:Character {name: "Jamie Perks", aliases: ["Jamie"], dob: date("1995-07-20"), gender: "Male"})
-MERGE (kathy:Character {name: "Kathy Perks", aliases: ["Kathy"], gender: "Female"})
-MERGE (faith:Character {name: "Faith", aliases: ["Faith"], gender: "Female"})
-MERGE (chuck:Character {name: "Chuck", aliases: ["Chuck"], gender: "Male"})
-MERGE (annette:Character {name: "Annette Turner", aliases: ["Annette"], gender: "Female"})
-MERGE (greg:Character {name: "Greg Turner", aliases: ["Greg"], dod: date("2004-05-07"), gender: "Male"})
-MERGE (nova:Character {name: "Nova Archer", aliases: ["Nova"], dob: date("2022-07-22"), gender: "Female"})
-MERGE (seren:Character {name: "Seren Archer", aliases: ["Seren"], dob: date("2022-07-22"), gender: "Female"})
 MERGE (lewis:Character {name: "Lewis Carmichael", aliases: ["Lewis"], gender: "Male"})
-MERGE (hazel:Character {name: "Hazel Woolley", aliases: ["Hazel"], gender: "Female"})
+MERGE (lottie:Character {name: "Lottie", aliases: ["Lottie"], gender: "Female"})
+MERGE (marjorie:Character {name: "Marjorie Antrobus", aliases: ["Marjorie"], dod: date("2008-05-20"), gender: "Female"})
+MERGE (markie:Character {name: "Markie", aliases: ["Markie"], gender: "Male"})
+MERGE (martyn:Character {name: "Martyn Gibson", aliases: ["Martyn"], gender: "Male"})
+MERGE (matt:Character {name: "Matt Crawford", aliases: ["Matt"], dob: date("1947-08-07"), gender: "Male"})
+MERGE (melH:Character {name: "Mel Hardiment", birth_name: "Melanie Hardiment", gender: "Female"})
+MERGE (mick:Character {name: "Mick Fadmoor", aliases: ["Mick"], gender: "Male"})
+MERGE (miranda:Character {name: "Miranda Elliott", aliases: ["Miranda"], gender: "Female"})
+MERGE (neville:Character {name: "Neville Booth", aliases: ["Neville", "Mr Booth"], gender: "Male"})
+MERGE (nickN:Character {name: "Nick Nicholson", birth_name: "Lester Nicholson", dob: date("1946-06-07"), dod: date("1970-03-18"), gender: "Male"})
+MERGE (oscar:Character {name: "Oscar Bamford", aliases: ["Oscar"], gender: "Male"})
+MERGE (paul:Character {name: "Paul Mack", aliases: ["Paul"], gender: "Male"})
+MERGE (philip:Character {name: "Philip Moss", aliases: ["Phillip", "Philip"], gender: "Male"})
 MERGE (richardL:Character {name: "Richard Locke", aliases: ["Richard"], gender: "Male"})
-MERGE (peterJ:Character {name: "Peter Johnson", dob: date("1965-09-05"), gender: "Male"})
-MERGE (paulJ:Character {name: "Paul Johnson", gender: "Male"})
-MERGE (georgeBarford:Character {name: "George Barford", gender: "Male"})
-MERGE (ralphBellamy:Character {name: "Ralph Bellamy", gender: "Male"})
-MERGE (melHarrison:Character {name: "Mel Harrison", gender: "Female"})
+MERGE (rochelle:Character {name: "Rochelle", aliases: ["Rochelle"], gender: "Female"})
+MERGE (stella:Character {name: "Stella Pryor", aliases: ["Stella"], gender: "Female"})
+MERGE (vince:Character {name: "Vince Casey", aliases: ["Vince"], gender: "Male"})
 
 MERGE (jennifer)-[:CHILD_OF]->(peggy)
 MERGE (lilian)-[:CHILD_OF]->(peggy)
@@ -209,7 +278,7 @@ MERGE (kenton)-[:CHILD_OF]->(jill)
 MERGE (elizabeth)-[:CHILD_OF]->(phil)
 MERGE (elizabeth)-[:CHILD_OF]->(jill)
 MERGE (meriel)-[:CHILD_OF]->(kenton)
-MERGE (meriel)-[:CHILD_OF]->(melHarrison)
+MERGE (meriel)-[:CHILD_OF]->(melH)
 
 MERGE (pip)-[:CHILD_OF]->(david)
 MERGE (pip)-[:CHILD_OF]->(ruth)
@@ -357,16 +426,74 @@ MERGE (tracy)-[:SPOUSE {status: "current"}]->(jazzer)
 MERGE (matt)-[:SPOUSE {status: "past", notes: "Divorced"}]->(lilian)
 MERGE (lucas)-[:SPOUSE {status: "past", notes: "Divorced"}]->(kate)
 MERGE (fallon)-[:SPOUSE {status: "current"}]->(harrison)
-MERGE (faith)-[:SPOUSE {status: "current"}]->(chuck);
-MERGE (lilian)-[:SPOUSE {status: "past", notes: "Divorced"}]->(ralphBellamy);
-MERGE (christine)-[:SPOUSE {status: "past", notes: "Divorced", start_date: date("1956-12-15")}]->(paulJ);
-MERGE (christine)-[:SPOUSE {status: "past", notes: "Widowed", start_date: date("1979-03-01")}]->(georgeBarford);
-MERGE (kenton)-[:SPOUSE {status: "past", notes: "Divorced", start_date: date("1997-06-15")}]->(melHarrison);
-MERGE (johnSr)-[:SPOUSE {status: "past", notes: "Widowed"}]->(mrsPhoebe);
+MERGE (faith)-[:SPOUSE {status: "current"}]->(chuck)
+MERGE (lilian)-[:SPOUSE {status: "past", notes: "Widowed", start_date: date("1971-09-03")}]->(ralphBellamy)
+MERGE (nickN)-[:SPOUSE {status: "past", notes: "Widowed", start_date: date("1969-05-26")}]->(lilian)
+MERGE (christine)-[:SPOUSE {status: "past", notes: "Divorced", start_date: date("1956-12-15")}]->(paulJ)
+MERGE (christine)-[:SPOUSE {status: "past", notes: "Widowed", start_date: date("1979-03-01")}]->(georgeBarford)
+MERGE (kenton)-[:SPOUSE {status: "past", notes: "Divorced", start_date: date("1997-06-15")}]->(melH)
+MERGE (johnSr)-[:SPOUSE {status: "past", notes: "Widowed"}]->(mrsPhoebe)
 
-MERGE (justinElliott)-[:ROMANTIC_RELATIONSHIP {status: "current"}]->(lilian);
-MERGE (justinBamford)-[:ROMANTIC_RELATIONSHIP {status: "current"}]->(coriander);
-MERGE (jill)-[:ROMANTIC_RELATIONSHIP {status: "current"}]->(leonard);
+// Forrest family
+MERGE (williamForrest)-[:SPOUSE {status: "past", notes: "Widowed"}]->(lisaForrest)
+MERGE (doris)-[:CHILD_OF]->(williamForrest)
+MERGE (doris)-[:CHILD_OF]->(lisaForrest)
+MERGE (tomForrest)-[:CHILD_OF]->(williamForrest)
+MERGE (tomForrest)-[:CHILD_OF]->(lisaForrest)
+MERGE (tedForrest)-[:CHILD_OF]->(williamForrest)
+MERGE (tedForrest)-[:CHILD_OF]->(lisaForrest)
+MERGE (tomForrest)-[:SPOUSE {status: "past", notes: "Widowed"}]->(pruForrest)
+
+// Gabriel family
+MERGE (walter)-[:SPOUSE {status: "past", notes: "Widowed"}]->(annieG)
+MERGE (nelson)-[:CHILD_OF]->(walter)
+MERGE (nelson)-[:CHILD_OF]->(annieG)
+
+// Grundy
+MERGE (joe)-[:SPOUSE {status: "past", notes: "Widowed"}]->(susanG)
+MERGE (alfG)-[:CHILD_OF]->(joe)
+MERGE (alfG)-[:CHILD_OF]->(susanG)
+MERGE (eddie)-[:CHILD_OF]->(susanG)
+
+// Larkin family
+MERGE (nedL)-[:SPOUSE {status: "past", notes: "Widowed"}]->(mabelL)
+MERGE (jethroL)-[:CHILD_OF]->(nedL)
+MERGE (jethroL)-[:CHILD_OF]->(mabelL)
+MERGE (susanLarkin)-[:CHILD_OF]->(nedL)
+MERGE (susanLarkin)-[:CHILD_OF]->(mabelL)
+MERGE (jethroL)-[:SPOUSE {status: "past", notes: "Widowed"}]->(lizzieL)
+MERGE (clarrie)-[:CHILD_OF]->(jethroL)
+MERGE (clarrie)-[:CHILD_OF]->(lizzieL)
+MERGE (rosieM)-[:CHILD_OF]->(jethroL)
+MERGE (rosieM)-[:CHILD_OF]->(lizzieL)
+
+// Perkins family
+MERGE (albertP)-[:SPOUSE {status: "past"}]->(pollyP)
+MERGE (peggy)-[:CHILD_OF]->(albertP)
+MERGE (peggy)-[:CHILD_OF]->(pollyP)
+MERGE (arthurP)-[:SPOUSE {status: "past", notes: "Widowed"}]->(pollyP)
+
+// Perks family
+MERGE (sid)-[:SPOUSE {status: "past", notes: "Widowed"}]->(pollyMead)
+MERGE (lucyP)-[:CHILD_OF]->(sid)
+MERGE (lucyP)-[:CHILD_OF]->(pollyMead)
+MERGE (sid)-[:SPOUSE {status: "past", notes: "Divorced"}]->(kathy)
+MERGE (jamie)-[:CHILD_OF]->(sid)
+
+// Tucker family
+MERGE (mike)-[:SPOUSE {status: "past", notes: "Widowed"}]->(bettyT)
+MERGE (roy)-[:CHILD_OF]->(bettyT)
+MERGE (brenda)-[:CHILD_OF]->(bettyT)
+
+// Woolley
+MERGE (jackW)-[:SPOUSE {status: "past", notes: "Widowed"}]->(valerie)
+
+// Wilson/Archer
+MERGE (laura)-[:SPOUSE {status: "past", notes: "Widowed"}]->(frank)
+
+MERGE (justinElliott)-[:ROMANTIC_RELATIONSHIP {status: "current"}]->(lilian)
+MERGE (justinBamford)-[:ROMANTIC_RELATIONSHIP {status: "current"}]->(coriander)
+MERGE (jill)-[:ROMANTIC_RELATIONSHIP {status: "current"}]->(leonard)
 
 // Friendships and non-familial connections
 MERGE (joe)-[:FRIEND_OF {notes: "Friendly rivalry"}]->(bert);
