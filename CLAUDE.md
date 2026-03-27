@@ -32,15 +32,15 @@ Requires Python with `requests`, `beautifulsoup4`, `neo4j`, `python-dotenv`.
 
 ### Web App (Next.js App Router)
 
-- **`app/actions.ts`** — All data fetching. Server actions that run Cypher queries against Neo4j via a shared driver (`lib/neo4j.ts`). Three main queries: `getTimeline()` (paginated episode list), `getCharacterProfile()`, `getEpisodeByDate()`.
+- **`app/actions.ts`** — All data fetching. Server actions that run Cypher queries against Neo4j via a shared driver (`lib/neo4j.ts`). Four queries: `getTimeline()` (paginated episode list), `getCharacterProfile()`, `getEpisodeByDate()`, `getFamilyTree()` (traverses `CHILD_OF`/`SPOUSE` up to 3 hops, returns null if ≤1 node found).
 - **Routes**: `/` (timeline), `/to/[slug]` (character-filtered timeline), `/on/[date]` (single episode detail)
 - **Query params**: `?page=N&sort=asc|desc`
-- **Components** are presentational, receiving data as props from server pages. No client-side state management.
+- **Components** are presentational, receiving data as props from server pages. `FamilyTree` (using the `family-chart` library) is the only `"use client"` component.
 - **Styling**: Tailwind CSS v4 via PostCSS.
 
 ### Neo4j Graph Model
 
-Nodes: `Episode` (pid, date, synopsis), `Scene` (id, order, text), `Character` (name, slug, aliases, dob, dod, gender), `Location` (name)
+Nodes: `Episode` (pid, date, synopsis), `Scene` (id, order, text), `Character` (name, slug, gender; optional: birth_name, aliases, dob, dod, keywords, notes, first_appearance, last_appearance), `Location` (name)
 
 Key relationships:
 - `Scene -[:PART_OF]-> Episode`
@@ -67,7 +67,12 @@ Six Python files plus seed data:
 
 **Performance:** Duplicate cleanup is skipped on small incremental updates (<=10 episodes). Each pipeline phase (scrape, process, upsert, cleanup, linking) prints timing output.
 
-Initial character/location seed data lives in `scraper/import_base_data.txt`. Requires APOC plugin for slug generation during initial setup.
+Initial character/location seed data lives in `scraper/import_base_data.txt`. Requires APOC plugin for slug generation during initial setup. Conventions for this file:
+- `birth_name`: set when the character's current name differs from their birth name (e.g. married women, name changes)
+- `aliases`: only add for characters who were living post-2007 (the BBC archive start date); pre-2007 deceased characters are never referenced by alias in scraped episode text
+- `keywords`: extra terms that help disambiguate the character in scene text (e.g. place names, conditions)
+- `notes`: factual disputes or context (e.g. disputed DOB)
+- Character slugs are auto-generated from `birth_name` (if set) or `name` by the APOC slug query at the bottom of the file
 
 ## Environment Variables
 
