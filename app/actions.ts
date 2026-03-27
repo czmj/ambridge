@@ -118,13 +118,14 @@ export async function getFamilyTree(
     CALL (p, people, spouseSlugs) { OPTIONAL MATCH (child:Character)-[:CHILD_OF]->(p)                                                                                         
             OPTIONAL MATCH (child)-[:CHILD_OF]->(coparent:Character)                                                                                                           
             WHERE coparent IN people AND coparent <> p AND NOT coparent.slug IN spouseSlugs                                                                                    
-            RETURN [x IN collect(DISTINCT coparent.slug) | {slug: x, status: 'coparent'}]   as coparentDetails}
+            RETURN collect(DISTINCT coparent.slug) AS coparentSlugs,
+               collect(DISTINCT {slug: coparent.slug, status: "coparent"}) AS coparentDetails }
     CALL (p, people) { OPTIONAL MATCH (child:Character)-[:CHILD_OF]->(p)
            WHERE child IN people RETURN collect(child.slug) AS childSlugs }
 
     RETURN p { .name, .slug, .dob, .dod, .gender } AS person,
            parentSlugs, 
-           spouseSlugs AS partnerSlugs, 
+           spouseSlugs + coparentSlugs AS partnerSlugs, 
            spouseDetails + coparentDetails AS partnerDetails,
            childSlugs
   `;
